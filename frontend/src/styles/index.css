@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #050505;
+  --primary: #00e5ff;
+  --secondary: #ffb800;
+  --accent: #00ff88;
+  --card: rgba(255, 255, 255, 0.08);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth; /* fallback; Lenis takes over in Phase 5 */
+  }
+  body {
+    @apply bg-bg text-white font-sans antialiased;
+    overflow-x: hidden;
+  }
+  /* Honor reduced motion globally */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .glass {
+    background: var(--card);
+    @apply backdrop-blur-glass border border-white/10 rounded-2xl;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(90deg, var(--primary), var(--accent));
+  }
+}

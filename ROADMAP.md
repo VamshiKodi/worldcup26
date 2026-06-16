@@ -6,9 +6,9 @@ commands you can give me next.
 | Phase | Title | Outcome | Status |
 |------:|-------|---------|--------|
 | 1 | **Architecture & scaffold** | Docs + runnable FE/BE skeleton, design tokens, git | ✅ Done |
-| 2 | **DB schemas & backend APIs** | All 12 Mongoose models, REST controllers/routes, validation, pagination, seed data | ⬜ Next |
-| 3 | **Auth & authorization** | JWT access/refresh, Google OAuth, guards, FE auth flow | ⬜ |
-| 4 | **Frontend pages** | All pages + sections wired to API, responsive layouts, UI kit | ⬜ |
+| 2 | **DB schemas & backend APIs** | All 12 Mongoose models, REST controllers/routes, validation, pagination, seed data | ✅ Done |
+| 3 | **Auth & authorization** | JWT access/refresh, Google OAuth, guards, FE auth flow | ✅ Done |
+| 4 | **Frontend pages** | All pages + sections wired to API, responsive layouts, UI kit | ⬜ Next |
 | 5 | **Scroll animations** | Lenis + GSAP ScrollTrigger + Framer + R3F hero, reduced-motion | ⬜ |
 | 6 | **Prediction engine** | Match/group/bracket/winner prediction + scoring + AI lab + simulator | ⬜ |
 | 7 | **Admin dashboard** | CRUD for teams/players/matches, analytics, moderation | ⬜ |

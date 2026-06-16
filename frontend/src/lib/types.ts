@@ -224,3 +224,30 @@ export interface SimulationResult {
   runs: number;
   teams: SimTeamResult[];
 }
+
+// ── Admin (Phase 7) ─────────────────────────────────────────────────────
+
+export interface AdminAnalytics {
+  totals: {
+    users: number;
+    teams: number;
+    players: number;
+    matches: number;
+    predictions: number;
+    comments: number;
+  };
+  predictionsByType: Array<{ _id: string; count: number }>;
+  settlement: { settled: number; pending: number };
+  matchStatus: Array<{ _id: string; count: number }>;
+  signups: Array<{ _id: string; count: number }>;
+  topPredictors: Array<{ _id: string; name: string; avatarUrl?: string; score: number; accuracy: number }>;
+}
+
+export interface AdminComment {
+  _id: string;
+  body: string;
+  status: 'visible' | 'flagged' | 'removed';
+  targetType: string;
+  userId: { _id: string; name: string; avatarUrl?: string } | string;
+  createdAt: string;
+}

@@ -13,7 +13,9 @@ import {
   MatchModel,
   PlayerModel,
   AchievementModel,
+  UserModel,
 } from '../models/index.js';
+import { hashPassword } from '../utils/password.js';
 import { SEED_TEAMS, GROUP_NAMES, SEED_PLAYERS, SEED_ACHIEVEMENTS } from './seedData.js';
 
 const FLAG = (code: string) => `https://flagcdn.com/w320/${code.toLowerCase().slice(0, 2)}.png`;
@@ -117,6 +119,19 @@ async function run() {
   // 5) Achievements
   await AchievementModel.insertMany(SEED_ACHIEVEMENTS);
   console.log(`✅ ${SEED_ACHIEVEMENTS.length} achievements`);
+
+  // 6) Dev admin (for the Phase 7 dashboard). Override via SEED_ADMIN_EMAIL/PASSWORD.
+  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? 'admin@worldcup26.dev';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? 'admin12345';
+  await UserModel.deleteOne({ email: adminEmail });
+  await UserModel.create({
+    name: 'Tournament Admin',
+    email: adminEmail,
+    passwordHash: await hashPassword(adminPassword),
+    provider: 'local',
+    role: 'admin',
+  });
+  console.log(`✅ admin user: ${adminEmail} / ${adminPassword}`);
 
   console.log('🌱 Seed complete.');
   await mongoose.disconnect();

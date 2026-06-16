@@ -12,6 +12,7 @@ import { predictionRouter } from './predictionRoutes.js';
 import { bracketRouter } from './bracketRoutes.js';
 import { aiRouter } from './aiRoutes.js';
 import { simulateRouter } from './simulateRoutes.js';
+import { adminRouter } from './adminRoutes.js';
 
 /**
  * API v1 router. Phase 2 mounts all read resources.
@@ -33,3 +34,4 @@ apiRouter.use('/predictions', predictionRouter);
 apiRouter.use('/brackets', bracketRouter);
 apiRouter.use('/ai', aiRouter);
 apiRouter.use('/simulate', simulateRouter);
+apiRouter.use('/admin', adminRouter);

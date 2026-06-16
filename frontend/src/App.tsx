@@ -7,7 +7,14 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 // Route-level code splitting (Phase 8 performance target)
 const Home = lazy(() => import('./pages/Home'));
 const Login = lazy(() => import('./pages/Login'));
+const Teams = lazy(() => import('./pages/Teams'));
+const Players = lazy(() => import('./pages/Players'));
+const Matches = lazy(() => import('./pages/Matches'));
+const Groups = lazy(() => import('./pages/Groups'));
+const Bracket = lazy(() => import('./pages/Bracket'));
+const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const Predictions = lazy(() => import('./pages/Predictions'));
+const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 export default function App() {
@@ -18,6 +25,12 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/teams" element={<Teams />} />
+          <Route path="/players" element={<Players />} />
+          <Route path="/matches" element={<Matches />} />
+          <Route path="/groups" element={<Groups />} />
+          <Route path="/bracket" element={<Bracket />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route
             path="/predictions"
             element={
@@ -26,7 +39,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          {/* Phase 4 adds: /teams /players /matches /bracket /leaderboard /admin */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute adminOnly>
+                <Admin />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

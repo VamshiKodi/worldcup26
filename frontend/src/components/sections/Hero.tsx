@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Button } from '../ui/Button';
 
 /**
@@ -40,8 +41,12 @@ export function Hero() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-10 flex items-center justify-center gap-4"
         >
-          <Button variant="primary">Predict Now</Button>
-          <Button variant="ghost">Explore Tournament</Button>
+          <Link to="/predictions">
+            <Button variant="primary">Predict Now</Button>
+          </Link>
+          <Link to="/teams">
+            <Button variant="ghost">Explore Tournament</Button>
+          </Link>
         </motion.div>
       </div>
     </section>

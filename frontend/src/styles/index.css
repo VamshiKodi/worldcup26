@@ -12,11 +12,27 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth; /* fallback; Lenis takes over in Phase 5 */
+    scroll-behavior: smooth; /* native fallback; Lenis disables this via .lenis below */
   }
   body {
     @apply bg-bg text-white font-sans antialiased;
     overflow-x: hidden;
+  }
+
+  /* Lenis: hand scroll control to JS, kill momentum during resize. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
   }
   /* Honor reduced motion globally */
   @media (prefers-reduced-motion: reduce) {

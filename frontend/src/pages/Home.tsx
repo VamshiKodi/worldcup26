@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { SmoothScrollProvider } from '../providers/SmoothScrollProvider';
 import { Hero } from '../components/sections/Hero';
 import { StatsBand } from '../components/sections/StatsBand';
 import { TopScorers } from '../components/sections/TopScorers';
+import { TeamsShowcase } from '../components/sections/TeamsShowcase';
+import { Reveal, RevealItem } from '../components/motion/Reveal';
 
 const EXPLORE = [
   { to: '/teams', title: 'Teams', desc: '48 nations, ranked and grouped.' },
@@ -14,28 +15,30 @@ const EXPLORE = [
 ];
 
 /**
- * Home — the cinematic scroll experience.
- * Phase 4 wires real data sections; Phase 5 layers in Lenis + GSAP scroll animations
- * and the R3F hero.
+ * Home — the cinematic scroll experience. Lenis drives momentum (global, via
+ * SmoothScrollProvider); sections reveal on view and the showcase pins horizontally.
  */
 export default function Home() {
   return (
-    <SmoothScrollProvider>
-      <main>
-        <Hero />
-        <StatsBand />
+    <main>
+      <Hero />
 
-        <section className="mx-auto max-w-6xl px-6 py-20">
-          <div className="mb-8 text-center">
-            <p className="text-xs uppercase tracking-[0.3em] text-secondary">Explore the tournament</p>
-            <h2 className="font-display text-3xl font-bold sm:text-4xl">Dive into the data</h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {EXPLORE.map((c) => (
+      <Reveal>
+        <StatsBand />
+      </Reveal>
+
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <Reveal className="mb-8 text-center">
+          <p className="text-xs uppercase tracking-[0.3em] text-secondary">Explore the tournament</p>
+          <h2 className="font-display text-3xl font-bold sm:text-4xl">Dive into the data</h2>
+        </Reveal>
+
+        <Reveal stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {EXPLORE.map((c) => (
+            <RevealItem key={c.to}>
               <Link
-                key={c.to}
                 to={c.to}
-                className="glass group p-6 transition hover:border-primary/40 hover:shadow-glow"
+                className="glass group block p-6 transition hover:border-primary/40 hover:shadow-glow"
               >
                 <h3 className="font-display text-2xl font-semibold transition group-hover:text-primary">
                   {c.title}
@@ -45,12 +48,18 @@ export default function Home() {
                   Explore →
                 </span>
               </Link>
-            ))}
-          </div>
-        </section>
+            </RevealItem>
+          ))}
+        </Reveal>
+      </section>
 
+      <TeamsShowcase />
+
+      <Reveal>
         <TopScorers />
+      </Reveal>
 
+      <Reveal>
         <section className="mx-auto max-w-3xl px-6 py-24 text-center">
           <h2 className="font-display text-4xl font-bold">Think you can call it?</h2>
           <p className="mt-3 text-white/50">
@@ -64,7 +73,7 @@ export default function Home() {
             Start predicting
           </Link>
         </section>
-      </main>
-    </SmoothScrollProvider>
+      </Reveal>
+    </main>
   );
 }

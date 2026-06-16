@@ -12,7 +12,7 @@ commands you can give me next.
 | 5 | **Scroll animations** | Lenis + GSAP ScrollTrigger + Framer + R3F hero, reduced-motion | ✅ Done |
 | 6 | **Prediction engine** | Match/group/bracket/winner prediction + scoring + AI lab + simulator | ✅ Done |
 | 7 | **Admin dashboard** | CRUD for teams/players/matches, analytics, moderation | ✅ Done |
-| 8 | **Production hardening** | Code splitting, caching, Lighthouse 90+, deploy configs | ⬜ Next |
+| 8 | **Production hardening** | Code splitting, caching, Lighthouse 90+, deploy configs | ✅ Done |
 
 ---
 

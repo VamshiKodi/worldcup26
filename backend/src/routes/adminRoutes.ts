@@ -1,7 +1,8 @@
-import { Router } from 'express';
+import { Router, type NextFunction, type Request, type Response } from 'express';
 import { asyncHandler } from '../middleware/asyncHandler.js';
 import { validate } from '../middleware/validate.js';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { referenceCache } from '../utils/cache.js';
 import {
   idParam,
   teamCreateBody,
@@ -33,6 +34,17 @@ export const adminRouter = Router();
 
 // Every admin route requires an authenticated admin.
 adminRouter.use(requireAuth, requireAdmin);
+
+// Any successful admin write invalidates the read-through reference cache, so the
+// public read APIs (teams/players/matches/standings/stats) reflect edits immediately.
+adminRouter.use((req: Request, res: Response, next: NextFunction) => {
+  if (req.method !== 'GET') {
+    res.on('finish', () => {
+      if (res.statusCode < 400) referenceCache.clear();
+    });
+  }
+  next();
+});
 
 adminRouter.get('/analytics', asyncHandler(analytics));
 

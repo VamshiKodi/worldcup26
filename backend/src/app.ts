@@ -12,6 +12,10 @@ import { errorHandler, notFound } from './middleware/error.js';
 export function createApp(): Application {
   const app = express();
 
+  // Behind Render/Vercel/NGINX: trust the first proxy so client IPs (rate limiting)
+  // and `secure` cookies are evaluated correctly.
+  if (env.isProd) app.set('trust proxy', 1);
+
   app.use(helmet());
   app.use(compression());
   app.use(express.json({ limit: '1mb' }));

@@ -8,6 +8,8 @@ const LINKS = [
   ['Matches', '/matches'],
   ['Groups', '/groups'],
   ['Bracket', '/bracket'],
+  ['AI Lab', '/lab'],
+  ['Simulator', '/simulator'],
   ['Leaderboard', '/leaderboard'],
 ] as const;
 

@@ -136,3 +136,91 @@ export interface TournamentStats {
 export function isTeamRef(t: TeamRef | string | undefined | null): t is TeamRef {
   return !!t && typeof t === 'object';
 }
+
+// ── Predictions (Phase 6) ───────────────────────────────────────────────
+
+export type PredictionType = 'match' | 'group' | 'bracket' | 'winner';
+export type Outcome = 'H' | 'D' | 'A';
+
+export interface MatchPick {
+  outcome: Outcome | null;
+  homeScore: number | null;
+  awayScore: number | null;
+}
+
+export interface GroupRank {
+  teamId: string;
+  rank: number;
+}
+
+/** A populated match as embedded in a user's prediction list. */
+export interface PredictionMatch {
+  _id: string;
+  stage: Stage;
+  kickoff: string;
+  status: MatchStatus;
+  score: MatchScore;
+  homeTeamId: TeamRef;
+  awayTeamId: TeamRef;
+}
+
+export interface Prediction {
+  _id: string;
+  userId: string;
+  type: PredictionType;
+  matchId: PredictionMatch | string | null;
+  groupId: { _id: string; name: string } | string | null;
+  winnerTeamId: TeamRef | string | null;
+  pick: MatchPick;
+  groupPrediction: GroupRank[];
+  points: number;
+  settled: boolean;
+  updatedAt: string;
+}
+
+// ── AI Lab ──────────────────────────────────────────────────────────────
+
+export interface AiTeamCard {
+  id: string;
+  name: string;
+  code: string;
+  flagUrl: string;
+  fifaRanking: number;
+  rating: number;
+  form: string[];
+}
+
+export interface AiMatchPrediction {
+  matchId: string;
+  stage: Stage;
+  neutral: boolean;
+  home: AiTeamCard;
+  away: AiTeamCard;
+  probabilities: { home: number; draw: number; away: number };
+  likelyScore: { home: number; away: number };
+  expectedGoals: { home: number; away: number };
+}
+
+export interface ChampionshipOdd extends AiTeamCard {
+  probability: number;
+}
+
+// ── Simulator ───────────────────────────────────────────────────────────
+
+export interface SimTeamResult {
+  id: string;
+  name: string;
+  code: string;
+  flagUrl: string;
+  rating: number;
+  reachR16: number;
+  reachQF: number;
+  reachSF: number;
+  reachFinal: number;
+  win: number;
+}
+
+export interface SimulationResult {
+  runs: number;
+  teams: SimTeamResult[];
+}

@@ -19,6 +19,8 @@ const Groups = lazy(() => import('./pages/Groups'));
 const Bracket = lazy(() => import('./pages/Bracket'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const Predictions = lazy(() => import('./pages/Predictions'));
+const AiLab = lazy(() => import('./pages/AiLab'));
+const Simulator = lazy(() => import('./pages/Simulator'));
 const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -50,6 +52,8 @@ export default function App() {
               <Route path="/groups" element={<Groups />} />
               <Route path="/bracket" element={<Bracket />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/lab" element={<AiLab />} />
+              <Route path="/simulator" element={<Simulator />} />
               <Route
                 path="/predictions"
                 element={

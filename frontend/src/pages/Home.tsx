@@ -11,6 +11,8 @@ const EXPLORE = [
   { to: '/matches', title: 'Matches', desc: 'Every fixture and result.' },
   { to: '/bracket', title: 'Bracket', desc: 'The knockout road to the final.' },
   { to: '/players', title: 'Players', desc: 'The golden boot contenders.' },
+  { to: '/lab', title: 'AI Lab', desc: 'Model-driven match & title odds.' },
+  { to: '/simulator', title: 'Simulator', desc: 'Monte Carlo the whole tournament.' },
   { to: '/leaderboard', title: 'Leaderboard', desc: 'See who predicts best.' },
 ];
 

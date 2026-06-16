@@ -8,10 +8,14 @@ import { groupRouter } from './groupRoutes.js';
 import { standingsRouter } from './standingsRoutes.js';
 import { leaderboardRouter } from './leaderboardRoutes.js';
 import { statsRouter } from './statsRoutes.js';
+import { predictionRouter } from './predictionRoutes.js';
+import { bracketRouter } from './bracketRoutes.js';
+import { aiRouter } from './aiRoutes.js';
+import { simulateRouter } from './simulateRoutes.js';
 
 /**
  * API v1 router. Phase 2 mounts all read resources.
- * Phase 6 adds /predictions /brackets /simulate; Phase 7 adds /admin.
+ * Phase 6 adds /predictions /brackets /ai /simulate; Phase 7 adds /admin.
  */
 export const apiRouter = Router();
 
@@ -25,3 +29,7 @@ apiRouter.use('/groups', groupRouter);
 apiRouter.use('/standings', standingsRouter);
 apiRouter.use('/leaderboard', leaderboardRouter);
 apiRouter.use('/stats', statsRouter);
+apiRouter.use('/predictions', predictionRouter);
+apiRouter.use('/brackets', bracketRouter);
+apiRouter.use('/ai', aiRouter);
+apiRouter.use('/simulate', simulateRouter);

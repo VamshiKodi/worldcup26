@@ -16,8 +16,8 @@ export function validate(schema: ZodTypeAny, source: Source = 'body') {
         new ApiError(422, 'VALIDATION_ERROR', 'Invalid request', result.error.flatten()),
       );
     }
-    // @ts-expect-error overwrite with parsed value
-    req[source] = result.data;
+    // Overwrite with parsed (typed/coerced) value.
+    (req as Record<Source, unknown>)[source] = result.data;
     next();
   };
 }

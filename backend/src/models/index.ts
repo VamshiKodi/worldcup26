@@ -1,7 +1,25 @@
-/**
- * Model barrel. Phase 1 ships the Team model as the reference implementation.
- * Phase 2 adds: User, Player, Group, Match, Prediction, Bracket, Statistic,
- * Leaderboard, Achievement, Notification, Comment.
- */
+/** Model barrel — all 12 collections. */
 export { TeamModel } from './Team.js';
 export type { Team } from './Team.js';
+export { UserModel } from './User.js';
+export type { User } from './User.js';
+export { PlayerModel } from './Player.js';
+export type { Player } from './Player.js';
+export { GroupModel } from './Group.js';
+export type { Group } from './Group.js';
+export { MatchModel } from './Match.js';
+export type { Match } from './Match.js';
+export { PredictionModel } from './Prediction.js';
+export type { Prediction } from './Prediction.js';
+export { BracketModel } from './Bracket.js';
+export type { Bracket } from './Bracket.js';
+export { StatisticModel } from './Statistic.js';
+export type { Statistic } from './Statistic.js';
+export { LeaderboardModel } from './Leaderboard.js';
+export type { Leaderboard } from './Leaderboard.js';
+export { AchievementModel } from './Achievement.js';
+export type { Achievement } from './Achievement.js';
+export { NotificationModel } from './Notification.js';
+export type { Notification } from './Notification.js';
+export { CommentModel } from './Comment.js';
+export type { Comment } from './Comment.js';

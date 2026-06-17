@@ -78,6 +78,15 @@ export interface MatchScore {
   away: number | null;
 }
 
+export type MatchEventType = 'goal' | 'own_goal' | 'penalty' | 'yellow' | 'red' | 'sub';
+
+export interface MatchEvent {
+  minute: number;
+  type: MatchEventType;
+  teamId?: string;
+  playerId?: { _id: string; name: string } | string | null;
+}
+
 export interface Match {
   _id: string;
   stage: Stage;
@@ -89,6 +98,8 @@ export interface Match {
   kickoff: string;
   status: MatchStatus;
   score: MatchScore;
+  minute?: number;
+  events?: MatchEvent[];
   round?: number;
   bracketSlot?: string | null;
 }
@@ -160,6 +171,7 @@ export interface PredictionMatch {
   kickoff: string;
   status: MatchStatus;
   score: MatchScore;
+  minute?: number;
   homeTeamId: TeamRef;
   awayTeamId: TeamRef;
 }

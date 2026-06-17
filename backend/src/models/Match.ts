@@ -29,6 +29,7 @@ const matchSchema = new Schema(
       home: { type: Number, default: null },
       away: { type: Number, default: null },
     },
+    minute: { type: Number, default: 0 }, // live match clock, driven by the live engine
     events: { type: [matchEventSchema], default: [] },
     round: { type: Number, default: 1 }, // matchday within group stage
     bracketSlot: { type: String, default: null }, // e.g. 'QF1' for knockout wiring

@@ -5,6 +5,7 @@ import { createApp } from './app.js';
 import { connectDB } from './config/db.js';
 import { env } from './config/env.js';
 import { registerSocketHandlers } from './sockets/index.js';
+import { startLiveEngine } from './services/liveEngine.js';
 
 async function bootstrap() {
   await connectDB();
@@ -17,6 +18,9 @@ async function bootstrap() {
   });
   registerSocketHandlers(io);
 
+  // Auto-advance live matches and broadcast realtime updates (Phase 9).
+  const stopLive = env.live.enabled ? startLiveEngine(io) : () => {};
+
   server.listen(env.port, () => {
     console.log(`🚀 API listening on http://localhost:${env.port}/api/v1`);
   });
@@ -25,6 +29,7 @@ async function bootstrap() {
   // platform (Render/Railway) can recycle the instance without dropped requests.
   const shutdown = (signal: string) => {
     console.log(`\n${signal} received — shutting down…`);
+    stopLive();
     server.close(() => {
       void mongoose.connection.close(false).then(() => process.exit(0));
     });

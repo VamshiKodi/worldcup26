@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { STAGE_LABEL, formatDay, formatTime } from '../lib/format';
 import type { ListResponse, Match, MatchStatus, Stage } from '../lib/types';
+import { useLive } from '../store/liveSlice';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { FilterTabs } from '../components/ui/FilterTabs';
 import { Flag } from '../components/ui/Flag';
@@ -95,15 +97,20 @@ export default function Matches() {
 }
 
 function MatchRow({ match }: { match: Match }) {
-  const { homeTeamId: home, awayTeamId: away, score, status } = match;
+  // Live overlay (Phase 9): a socket update supersedes the REST snapshot in place.
+  const live = useLive((s) => s.live[match._id]);
+  const status = live?.status ?? match.status;
+  const score = live?.score ?? match.score;
+  const minute = live?.minute ?? match.minute;
+  const { homeTeamId: home, awayTeamId: away } = match;
   const played = status === 'finished' || status === 'live';
 
   return (
-    <div className="glass flex items-center gap-4 px-5 py-4">
+    <Link to={`/matches/${match._id}`} className="glass flex items-center gap-4 px-5 py-4 transition hover:border-primary/40">
       <div className="w-28 shrink-0 text-xs text-white/40">
         {played ? (
           <Badge tone={status === 'live' ? 'live' : 'muted'}>
-            {status === 'live' ? '● LIVE' : 'FT'}
+            {status === 'live' ? `● ${minute ? `${minute}'` : 'LIVE'}` : 'FT'}
           </Badge>
         ) : (
           formatTime(match.kickoff)
@@ -133,6 +140,6 @@ function MatchRow({ match }: { match: Match }) {
       <div className="hidden w-32 shrink-0 text-right text-xs text-white/30 sm:block">
         {match.city || STAGE_LABEL[match.stage]}
       </div>
-    </div>
+    </Link>
   );
 }

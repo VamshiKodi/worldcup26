@@ -40,6 +40,7 @@ export async function getMatch(req: Request, res: Response) {
   const match = await MatchModel.findById(req.params.id)
     .populate('homeTeamId', teamFields)
     .populate('awayTeamId', teamFields)
+    .populate('events.playerId', 'name')
     .lean();
   if (!match) throw new ApiError(404, 'MATCH_NOT_FOUND', 'Match not found');
   res.json({ data: match });

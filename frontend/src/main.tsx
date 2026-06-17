@@ -5,6 +5,8 @@ import { MotionConfig } from 'framer-motion';
 import App from './App';
 import { AuthProvider } from './providers/AuthProvider';
 import { SmoothScrollProvider } from './providers/SmoothScrollProvider';
+import { LiveProvider } from './providers/LiveProvider';
+import { Toaster } from './components/ui/Toaster';
 import './styles/index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -15,7 +17,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <AuthProvider>
           {/* One global Lenis loop (disabled under reduced motion) */}
           <SmoothScrollProvider>
-            <App />
+            {/* Global realtime layer: live score updates + goal toasts (Phase 9) */}
+            <LiveProvider>
+              <App />
+              <Toaster />
+            </LiveProvider>
           </SmoothScrollProvider>
         </AuthProvider>
       </MotionConfig>

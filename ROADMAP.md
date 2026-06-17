@@ -13,6 +13,7 @@ commands you can give me next.
 | 6 | **Prediction engine** | Match/group/bracket/winner prediction + scoring + AI lab + simulator | ✅ Done |
 | 7 | **Admin dashboard** | CRUD for teams/players/matches, analytics, moderation | ✅ Done |
 | 8 | **Production hardening** | Code splitting, caching, Lighthouse 90+, deploy configs | ✅ Done |
+| 9 | **Live match updates** | Auto-advancing live engine, realtime score/clock/timeline, goal toasts | ✅ Done |
 
 ---
 
@@ -59,6 +60,16 @@ commands you can give me next.
 - Route-level code splitting, lazy 3D, image optimization, list virtualization
 - Caching headers, rate-limit tuning, error monitoring hooks
 - Lighthouse pass (90+), Vercel/Render/Atlas deploy configs + CI notes
+
+## Phase 9 — Live match updates
+- Single-process in-memory live engine (`services/liveEngine.ts`): auto-advances `live` matches
+  minute-by-minute, strength-weighted goals (reusing the AI lab's `strength.ts`), resumes on boot
+- Realtime over Socket.io: `match:{id}` (tick/final) + `matches:live` (compact list updates)
+- Full-time reuses the existing settlement path (recompute standings + settle predictions + cache bust)
+- Frontend: live store slice, lazy-loaded socket layer (`LiveProvider`), `useMatchLive` hook,
+  `/matches/:id` detail page (clock + event timeline + your-prediction-vs-live), live-ticking
+  fixtures list, and a dependency-free toast system for goal / full-time alerts
+- Config via `LIVE_*` env vars; `LIVE_AUTOKICKOFF=on` + a low `LIVE_TICK_MS` gives a hands-off demo
 
 ---
 

@@ -15,6 +15,7 @@ const Login = lazy(() => import('./pages/Login'));
 const Teams = lazy(() => import('./pages/Teams'));
 const Players = lazy(() => import('./pages/Players'));
 const Matches = lazy(() => import('./pages/Matches'));
+const MatchDetail = lazy(() => import('./pages/MatchDetail'));
 const Groups = lazy(() => import('./pages/Groups'));
 const Bracket = lazy(() => import('./pages/Bracket'));
 const Leaderboard = lazy(() => import('./pages/Leaderboard'));
@@ -49,6 +50,7 @@ export default function App() {
               <Route path="/teams" element={<Teams />} />
               <Route path="/players" element={<Players />} />
               <Route path="/matches" element={<Matches />} />
+              <Route path="/matches/:id" element={<MatchDetail />} />
               <Route path="/groups" element={<Groups />} />
               <Route path="/bracket" element={<Bracket />} />
               <Route path="/leaderboard" element={<Leaderboard />} />

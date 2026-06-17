@@ -25,4 +25,10 @@ export const env = {
     clientId: process.env.GOOGLE_CLIENT_ID ?? '',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
   },
+  live: {
+    enabled: process.env.LIVE_ENGINE !== 'off', // on by default
+    tickMs: Number(process.env.LIVE_TICK_MS ?? 5000), // real ms per match-minute
+    maxConcurrent: Number(process.env.LIVE_MAX ?? 8),
+    autoKickoff: process.env.LIVE_AUTOKICKOFF === 'on', // promote scheduled→live at kickoff
+  },
 } as const;

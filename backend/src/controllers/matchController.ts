@@ -27,6 +27,7 @@ export async function listMatches(req: Request, res: Response) {
       .limit(l)
       .populate('homeTeamId', teamFields)
       .populate('awayTeamId', teamFields)
+      .populate('groupId', 'name')
       .lean(),
     MatchModel.countDocuments(filter),
   ]);
@@ -36,11 +37,13 @@ export async function listMatches(req: Request, res: Response) {
 
 /** GET /matches/:id */
 export async function getMatch(req: Request, res: Response) {
-  const teamFields = 'name code flagUrl';
+  // Richer than the list view: form + ranking power the form guide, groupId the match-info card.
+  const teamFields = 'name code flagUrl fifaRanking form';
   const match = await MatchModel.findById(req.params.id)
     .populate('homeTeamId', teamFields)
     .populate('awayTeamId', teamFields)
-    .populate('events.playerId', 'name')
+    .populate('groupId', 'name')
+    .populate('events.playerId', 'name photoUrl')
     .lean();
   if (!match) throw new ApiError(404, 'MATCH_NOT_FOUND', 'Match not found');
   res.json({ data: match });

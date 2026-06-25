@@ -54,5 +54,6 @@ npm run dev                 # http://localhost:5173
 
 ## Status
 
-**Phase 1 complete** — architecture, folder structure, and runnable skeleton for both apps.
-See [ROADMAP.md](./ROADMAP.md) for what's next.
+**Phases 1–10 complete** — full prediction platform with real-time updates and optional real
+World Cup data via API-Football (set `API_FOOTBALL_KEY` and run `npm run import:wc`).
+See [ROADMAP.md](./ROADMAP.md) for the full phase breakdown.

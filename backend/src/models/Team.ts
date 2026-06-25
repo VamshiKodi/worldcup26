@@ -2,6 +2,7 @@ import { Schema, model, type InferSchemaType } from 'mongoose';
 
 const teamSchema = new Schema(
   {
+    apiId: { type: Number, index: true, sparse: true }, // external id (football-data.org) for idempotent sync
     name: { type: String, required: true },
     code: { type: String, required: true, unique: true, uppercase: true, minlength: 3, maxlength: 3 },
     confederation: {

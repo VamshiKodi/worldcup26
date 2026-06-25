@@ -27,6 +27,7 @@ export interface TeamRef {
   code: string;
   flagUrl?: string;
   fifaRanking?: number;
+  form?: string[];
 }
 
 export interface TeamStats {
@@ -84,15 +85,16 @@ export interface MatchEvent {
   minute: number;
   type: MatchEventType;
   teamId?: string;
-  playerId?: { _id: string; name: string } | string | null;
+  playerId?: { _id: string; name: string; photoUrl?: string } | string | null;
 }
 
 export interface Match {
   _id: string;
   stage: Stage;
-  groupId?: string | null;
-  homeTeamId: TeamRef;
-  awayTeamId: TeamRef;
+  groupId?: { _id: string; name: string } | string | null;
+  // Knockout fixtures are TBD until the draw — teams arrive null on those.
+  homeTeamId: TeamRef | null;
+  awayTeamId: TeamRef | null;
   venue?: string;
   city?: string;
   kickoff: string;

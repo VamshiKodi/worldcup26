@@ -2,6 +2,7 @@ import { Schema, model, type InferSchemaType } from 'mongoose';
 
 const playerSchema = new Schema(
   {
+    apiId: { type: Number, index: true, sparse: true }, // external id (football-data.org) for idempotent sync
     name: { type: String, required: true, trim: true },
     teamId: { type: Schema.Types.ObjectId, ref: 'Team', required: true, index: true },
     position: { type: String, enum: ['GK', 'DF', 'MF', 'FW'], required: true },

@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { GroupModel } from '../models/index.js';
 import { ApiError } from '../middleware/error.js';
 
-const teamFields = 'name code flagUrl fifaRanking';
+const teamFields = 'name code flagUrl fifaRanking form';
 
 /** GET /groups — all groups with populated teams & standings */
 export async function listGroups(_req: Request, res: Response) {

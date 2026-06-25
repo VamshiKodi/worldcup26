@@ -81,9 +81,10 @@ function GroupTable({ group }: { group: Group }) {
         <thead>
           <tr className="text-left text-[0.65rem] uppercase tracking-wide text-white/40">
             <th className="pb-2 font-medium">Team</th>
-            <th className="pb-2 text-center font-medium">P</th>
+            <th className="pb-2 text-center font-medium">MP</th>
             <th className="pb-2 text-center font-medium">GD</th>
             <th className="pb-2 text-center font-medium">Pts</th>
+            <th className="pb-2 text-center font-medium">Form</th>
           </tr>
         </thead>
         <tbody>
@@ -101,6 +102,9 @@ function GroupTable({ group }: { group: Group }) {
               <td className="py-2 text-center text-white/60">{r.played}</td>
               <td className="py-2 text-center text-white/60">{r.gd > 0 ? `+${r.gd}` : r.gd}</td>
               <td className="py-2 text-center font-semibold">{r.points}</td>
+              <td className="py-2 text-center">
+                <FormIndicator form={r.team.form} />
+              </td>
             </tr>
           ))}
         </tbody>
@@ -109,5 +113,24 @@ function GroupTable({ group }: { group: Group }) {
         <span className="text-accent">▮</span> Top two qualify for the knockout stage.
       </p>
     </GlassCard>
+  );
+}
+
+function FormIndicator({ form }: { form?: string[] }) {
+  if (!form || form.length === 0) {
+    return <span className="text-white/20">-</span>;
+  }
+  return (
+    <div className="flex gap-1">
+      {form.map((result, i) => (
+        <span
+          key={i}
+          className={`h-2 w-2 rounded-full ${
+            result === 'W' ? 'bg-green-500' : result === 'D' ? 'bg-gray-400' : 'bg-red-500'
+          }`}
+          title={result === 'W' ? 'Win' : result === 'D' ? 'Draw' : 'Loss'}
+        />
+      ))}
+    </div>
   );
 }

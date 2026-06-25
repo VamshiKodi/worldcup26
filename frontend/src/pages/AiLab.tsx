@@ -41,9 +41,10 @@ export default function AiLab() {
               value={matchId}
               onChange={(e) => setMatchId(e.target.value)}
               className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm outline-none focus:border-primary/60"
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'white' }}
             >
               {matches.map((m) => (
-                <option key={m._id} value={m._id}>
+                <option key={m._id} value={m._id} style={{ backgroundColor: '#1a1a1a', color: 'white' }}>
                   {m.homeTeamId?.name ?? 'TBD'} vs {m.awayTeamId?.name ?? 'TBD'} · {STAGE_LABEL[m.stage]}
                 </option>
               ))}

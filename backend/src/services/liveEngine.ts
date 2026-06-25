@@ -85,7 +85,8 @@ export function startLiveEngine(io: SocketServer): () => void {
       .populate('homeTeamId', 'name code fifaRanking form')
       .populate('awayTeamId', 'name code fifaRanking form');
     // If the match vanished or was moved off "live" out-of-band, stop driving it.
-    if (!match || match.status !== 'live') {
+    // Knockout placeholders (TBD teams) can't be simulated — skip until both sides are set.
+    if (!match || match.status !== 'live' || !match.homeTeamId || !match.awayTeamId) {
       driven.delete(matchId);
       return;
     }

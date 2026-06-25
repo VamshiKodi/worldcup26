@@ -17,8 +17,19 @@ import {
 } from '../models/index.js';
 import { hashPassword } from '../utils/password.js';
 import { SEED_TEAMS, GROUP_NAMES, SEED_PLAYERS, SEED_ACHIEVEMENTS } from './seedData.js';
+import { recomputeGroupStandings } from '../services/standingsService.js';
 
 const FLAG = (code: string) => `https://flagcdn.com/w320/${code.toLowerCase().slice(0, 2)}.png`;
+
+// Generate random form (last 5 matches: W/D/L)
+function generateRandomForm(): string[] {
+  const results = ['W', 'D', 'L'];
+  const form: string[] = [];
+  for (let i = 0; i < 5; i++) {
+    form.push(results[Math.floor(Math.random() * results.length)]);
+  }
+  return form;
+}
 
 // Round-robin pairings for a group of 4 (indices into the group's team array).
 const RR_PAIRS: Array<[number, number]> = [
@@ -48,6 +59,9 @@ async function run() {
     PlayerModel.deleteMany({}),
     AchievementModel.deleteMany({}),
   ]);
+  
+  // Drop users collection to fix corrupted index
+  await UserModel.collection.drop().catch(() => {});
 
   // 1) Teams
   const teams = await TeamModel.insertMany(
@@ -58,6 +72,7 @@ async function run() {
       fifaRanking: t.fifaRanking,
       isHost: !!t.isHost,
       flagUrl: FLAG(t.code),
+      form: generateRandomForm(),
     })),
   );
   const teamByCode = new Map(teams.map((t) => [t.code, t]));
@@ -74,13 +89,47 @@ async function run() {
   console.log(`✅ ${groups.length} groups`);
 
   // 3) Group-stage fixtures (round-robin, 6 per group)
-  const baseDate = new Date('2026-06-11T16:00:00Z');
+  // Use relative dates for testing: some past (finished), some recent (live), some future (upcoming)
+  const now = new Date();
+  const oneDayMs = 24 * 60 * 60 * 1000;
   const matches: Record<string, unknown>[] = [];
   let venueIdx = 0;
+  let matchIdx = 0;
   groups.forEach(({ group, members }) => {
     RR_PAIRS.forEach(([h, a], i) => {
       const [venue, city] = VENUES[venueIdx++ % VENUES.length];
-      const kickoff = new Date(baseDate.getTime() + (RR_ROUND[i] - 1) * 4 * 86_400_000 + venueIdx * 3 * 3_600_000);
+      const round = RR_ROUND[i];
+      
+      // Stagger dates: first 24 matches finished (2-3 days ago), next 24 live (started today), rest upcoming (future)
+      let kickoff: Date;
+      let status: 'scheduled' | 'live' | 'finished';
+      let score: { home: number | null; away: number | null };
+      let minute: number | undefined;
+      
+      if (matchIdx < 24) {
+        // Finished matches (2-3 days ago)
+        kickoff = new Date(now.getTime() - (2 + Math.floor(matchIdx / 12)) * oneDayMs + matchIdx * 2 * 60 * 60 * 1000);
+        status = 'finished';
+        // Random scores for finished matches
+        const homeScore = Math.floor(Math.random() * 4);
+        const awayScore = Math.floor(Math.random() * 4);
+        score = { home: homeScore, away: awayScore };
+        minute = 90;
+      } else if (matchIdx < 48) {
+        // Live matches (started 30-90 mins ago)
+        kickoff = new Date(now.getTime() - (30 + Math.floor((matchIdx - 24) / 8) * 15) * 60 * 1000);
+        status = 'live';
+        const homeScore = Math.floor(Math.random() * 3);
+        const awayScore = Math.floor(Math.random() * 3);
+        score = { home: homeScore, away: awayScore };
+        minute = 30 + Math.floor((matchIdx - 24) / 8) * 15;
+      } else {
+        // Upcoming matches (starting in next few days)
+        kickoff = new Date(now.getTime() + (matchIdx - 48 + 1) * 4 * 60 * 60 * 1000);
+        status = 'scheduled';
+        score = { home: null, away: null };
+      }
+      
       matches.push({
         stage: 'group',
         groupId: group._id,
@@ -89,14 +138,59 @@ async function run() {
         venue,
         city,
         kickoff,
-        status: 'scheduled',
-        round: RR_ROUND[i],
-        score: { home: null, away: null },
+        status,
+        round,
+        score,
+        minute,
+        events: status !== 'scheduled' ? [
+          ...(score.home && score.home > 0 ? [{ minute: Math.floor(Math.random() * 45) + 1, type: 'goal', teamId: members[h]._id }] : []),
+          ...(score.away && score.away > 0 ? [{ minute: Math.floor(Math.random() * 45) + 46, type: 'goal', teamId: members[a]._id }] : []),
+        ] : [],
       });
+      matchIdx++;
     });
   });
   await MatchModel.insertMany(matches);
   console.log(`✅ ${matches.length} group fixtures`);
+
+  // Recompute standings for all groups after seeding matches
+  for (const { group } of groups) {
+    await recomputeGroupStandings(String(group._id));
+  }
+  console.log(`✅ Group standings computed`);
+
+  // 3b) Knockout bracket placeholders. The 2026 format advances 32 teams:
+  // R32(16) → R16(8) → QF(4) → SF(2) → 3rd place(1) + Final(1) = 32 knockout fixtures.
+  // Teams are TBD (null) until the group draw resolves — the frontend renders them as "TBD" and
+  // real pairings/results arrive via `npm run import:wc`. 72 group + 32 knockout = 104 total.
+  const KO_ROUNDS: Array<{ stage: string; count: number; dayOffset: number }> = [
+    { stage: 'r32', count: 16, dayOffset: 18 },
+    { stage: 'r16', count: 8, dayOffset: 24 },
+    { stage: 'qf', count: 4, dayOffset: 28 },
+    { stage: 'sf', count: 2, dayOffset: 32 },
+    { stage: 'third', count: 1, dayOffset: 35 },
+    { stage: 'final', count: 1, dayOffset: 36 },
+  ];
+  const knockouts: Record<string, unknown>[] = [];
+  KO_ROUNDS.forEach(({ stage, count, dayOffset }) => {
+    for (let n = 0; n < count; n++) {
+      const [venue, city] = VENUES[venueIdx++ % VENUES.length];
+      const kickoff = new Date(baseDate.getTime() + dayOffset * 86_400_000 + n * 4 * 3_600_000);
+      knockouts.push({
+        stage,
+        homeTeamId: null,
+        awayTeamId: null,
+        venue,
+        city,
+        kickoff,
+        status: 'scheduled',
+        score: { home: null, away: null },
+        bracketSlot: `${stage.toUpperCase()}-${n + 1}`,
+      });
+    }
+  });
+  await MatchModel.insertMany(knockouts);
+  console.log(`✅ ${knockouts.length} knockout fixtures (TBD)`);
 
   // 4) Players
   const players = SEED_PLAYERS.map((p) => {
@@ -108,7 +202,7 @@ async function run() {
       number: p.number,
       club: p.club,
       age: p.age,
-      photoUrl: '',
+      photoUrl: p.photo ?? '',
       stats: { goals: p.goals, assists: p.assists, xg: p.xg, cleanSheets: 0, minutes: 0, appearances: 0 },
       isTopScorer: p.goals >= 4,
     };
@@ -123,7 +217,6 @@ async function run() {
   // 6) Dev admin (for the Phase 7 dashboard). Override via SEED_ADMIN_EMAIL/PASSWORD.
   const adminEmail = process.env.SEED_ADMIN_EMAIL ?? 'admin@worldcup26.dev';
   const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? 'admin12345';
-  await UserModel.deleteOne({ email: adminEmail });
   await UserModel.create({
     name: 'Tournament Admin',
     email: adminEmail,
@@ -131,7 +224,27 @@ async function run() {
     provider: 'local',
     role: 'admin',
   });
+
+  // 7) Test users for login testing
+  await UserModel.create({
+    name: 'Test User One',
+    email: 'user1@test.com',
+    passwordHash: await hashPassword('password123'),
+    provider: 'local',
+    role: 'user',
+  });
+
+  await UserModel.create({
+    name: 'Test User Two',
+    email: 'user2@test.com',
+    passwordHash: await hashPassword('password123'),
+    provider: 'local',
+    role: 'user',
+  });
+
   console.log(`✅ admin user: ${adminEmail} / ${adminPassword}`);
+  console.log(`✅ test user 1: user1@test.com / password123`);
+  console.log(`✅ test user 2: user2@test.com / password123`);
 
   console.log('🌱 Seed complete.');
   await mongoose.disconnect();

@@ -1,6 +1,7 @@
+import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import type { MotionValue } from 'framer-motion';
-import { Trophy } from './Trophy';
+import { Emblem3D } from './Emblem3D';
 import { Particles } from './Particles';
 
 interface Props {
@@ -20,11 +21,13 @@ export default function HeroCanvas({ tiltX, tiltY }: Props) {
       gl={{ alpha: true, antialias: true }}
       style={{ pointerEvents: 'none' }}
     >
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={0.6} />
       <pointLight position={[4, 4, 4]} intensity={60} color="#00E5FF" />
       <pointLight position={[-4, -2, 2]} intensity={40} color="#FFB800" />
       <spotLight position={[0, 6, 3]} angle={0.4} penumbra={0.8} intensity={50} color="#ffffff" />
-      <Trophy tiltX={tiltX} tiltY={tiltY} />
+      <Suspense fallback={null}>
+        <Emblem3D tiltX={tiltX} tiltY={tiltY} />
+      </Suspense>
       <Particles />
     </Canvas>
   );

@@ -31,4 +31,15 @@ export const env = {
     maxConcurrent: Number(process.env.LIVE_MAX ?? 8),
     autoKickoff: process.env.LIVE_AUTOKICKOFF === 'on', // promote scheduled→live at kickoff
   },
+  // Real World Cup data via football-data.org. When `token` is set the app imports/syncs real
+  // fixtures, scores, standings and scorers instead of the simulated engine. Free tier covers
+  // the World Cup as competition `WC` (delayed live scores).
+  footballData: {
+    token: process.env.FOOTBALL_DATA_TOKEN ?? '',
+    baseUrl: process.env.FOOTBALL_DATA_URL ?? 'https://api.football-data.org/v4',
+    competition: process.env.FOOTBALL_DATA_COMPETITION ?? 'WC', // World Cup
+    livePollMs: Number(process.env.FOOTBALL_DATA_POLL_MS ?? 60_000), // live sync cadence (≥30s enforced)
+  },
 } as const;
+
+export const hasRealData = env.footballData.token.length > 0;

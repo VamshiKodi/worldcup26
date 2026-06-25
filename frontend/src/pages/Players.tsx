@@ -8,6 +8,7 @@ import { SectionHeading } from '../components/ui/SectionHeading';
 import { FilterTabs } from '../components/ui/FilterTabs';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Flag } from '../components/ui/Flag';
+import { PlayerAvatar } from '../components/ui/PlayerAvatar';
 import { Badge } from '../components/ui/Badge';
 import { Pagination } from '../components/ui/Pagination';
 import { SkeletonGrid } from '../components/ui/Skeleton';
@@ -102,7 +103,17 @@ export default function Players() {
                 <GlassCard hover className="h-full">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      {team && <Flag code={team.code} flagUrl={team.flagUrl} size={32} />}
+                      <div className="relative shrink-0">
+                        <PlayerAvatar name={p.name} photoUrl={p.photoUrl} size={48} />
+                        {team && (
+                          <Flag
+                            code={team.code}
+                            flagUrl={team.flagUrl}
+                            size={20}
+                            className="absolute -bottom-1 -right-1 ring-2 ring-bg"
+                          />
+                        )}
+                      </div>
                       <div>
                         <h3 className="font-display text-lg font-semibold leading-tight">{p.name}</h3>
                         <p className="text-xs text-white/40">

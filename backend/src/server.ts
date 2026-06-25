@@ -3,9 +3,10 @@ import mongoose from 'mongoose';
 import { Server as SocketServer } from 'socket.io';
 import { createApp } from './app.js';
 import { connectDB } from './config/db.js';
-import { env } from './config/env.js';
+import { env, hasRealData } from './config/env.js';
 import { registerSocketHandlers } from './sockets/index.js';
 import { startLiveEngine } from './services/liveEngine.js';
+import { startLiveSync } from './services/syncService.js';
 
 async function bootstrap() {
   await connectDB();
@@ -18,8 +19,13 @@ async function bootstrap() {
   });
   registerSocketHandlers(io);
 
-  // Auto-advance live matches and broadcast realtime updates (Phase 9).
-  const stopLive = env.live.enabled ? startLiveEngine(io) : () => {};
+  // Realtime updates. When a football-data.org token is configured, poll live fixtures and
+  // broadcast real scores; otherwise fall back to the simulated engine (Phase 9).
+  const stopLive = hasRealData
+    ? startLiveSync(io)
+    : env.live.enabled
+      ? startLiveEngine(io)
+      : () => {};
 
   server.listen(env.port, () => {
     console.log(`🚀 API listening on http://localhost:${env.port}/api/v1`);

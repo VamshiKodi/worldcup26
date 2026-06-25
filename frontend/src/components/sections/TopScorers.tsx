@@ -3,6 +3,7 @@ import { useApi } from '../../hooks/useApi';
 import { isTeamRef, type Player } from '../../lib/types';
 import { GlassCard } from '../ui/GlassCard';
 import { Flag } from '../ui/Flag';
+import { PlayerAvatar } from '../ui/PlayerAvatar';
 import { Skeleton } from '../ui/Skeleton';
 
 /** Golden-boot preview for the home page, wired to /stats/top-scorers. */
@@ -39,7 +40,17 @@ export function TopScorers() {
             return (
               <GlassCard key={p._id} className="flex items-center gap-4 py-3">
                 <span className="w-6 font-display text-xl text-white/30">{i + 1}</span>
-                {team && <Flag code={team.code} flagUrl={team.flagUrl} size={28} />}
+                <div className="relative shrink-0">
+                  <PlayerAvatar name={p.name} photoUrl={p.photoUrl} size={40} />
+                  {team && (
+                    <Flag
+                      code={team.code}
+                      flagUrl={team.flagUrl}
+                      size={18}
+                      className="absolute -bottom-1 -right-1 ring-2 ring-bg"
+                    />
+                  )}
+                </div>
                 <div className="flex-1">
                   <p className="font-semibold">{p.name}</p>
                   <p className="text-xs text-white/40">{team?.name ?? ''}</p>

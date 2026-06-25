@@ -5,6 +5,7 @@ import { POSITIONS } from '../../lib/format';
 import { isTeamRef, type ListResponse, type Player, type Position, type Team } from '../../lib/types';
 import { GlassCard } from '../ui/GlassCard';
 import { Flag } from '../ui/Flag';
+import { PlayerAvatar } from '../ui/PlayerAvatar';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { StatePanel } from '../ui/StatePanel';
@@ -145,7 +146,12 @@ export function AdminPlayers() {
                 const team = isTeamRef(p.teamId) ? p.teamId : null;
                 return (
                   <tr key={p._id} className="border-t border-white/5">
-                    <td className="px-4 py-2 font-medium">{p.name}</td>
+                    <td className="px-4 py-2 font-medium">
+                      <div className="flex items-center gap-2">
+                        <PlayerAvatar name={p.name} photoUrl={p.photoUrl} size={28} />
+                        {p.name}
+                      </div>
+                    </td>
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-2 text-white/60">
                         {team && <Flag code={team.code} flagUrl={team.flagUrl} size={18} />}

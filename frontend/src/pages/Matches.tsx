@@ -13,7 +13,7 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { StatePanel } from '../components/ui/StatePanel';
 
 const LIMIT = 30;
-const STAGES: Stage[] = ['group', 'r32', 'r16', 'qf', 'sf', 'final'];
+const STAGES: Stage[] = ['group', 'r32', 'r16', 'qf', 'sf', 'third', 'final'];
 const STATUSES: MatchStatus[] = ['scheduled', 'live', 'finished'];
 const STATUS_LABEL: Record<MatchStatus, string> = {
   scheduled: 'Upcoming',
@@ -96,6 +96,12 @@ export default function Matches() {
   );
 }
 
+/** 'R32-3' → 'Match 3' for a tidy knockout-slot label. */
+function slotLabel(slot?: string | null): string | null {
+  const n = slot?.match(/(\d+)\s*$/)?.[1];
+  return n ? `Match ${n}` : null;
+}
+
 function MatchRow({ match }: { match: Match }) {
   // Live overlay (Phase 9): a socket update supersedes the REST snapshot in place.
   const live = useLive((s) => s.live[match._id]);
@@ -104,6 +110,8 @@ function MatchRow({ match }: { match: Match }) {
   const minute = live?.minute ?? match.minute;
   const { homeTeamId: home, awayTeamId: away } = match;
   const played = status === 'finished' || status === 'live';
+  // Knockout fixtures exist before the draw — render them as a clean "to be determined" slot.
+  const tbd = !home || !away;
 
   return (
     <Link to={`/matches/${match._id}`} className="glass flex items-center gap-4 px-5 py-4 transition hover:border-primary/40">
@@ -117,28 +125,43 @@ function MatchRow({ match }: { match: Match }) {
         )}
       </div>
 
-      <div className="flex flex-1 items-center justify-end gap-3 text-right">
-        <span className="font-medium">{home?.name ?? 'TBD'}</span>
-        <Flag code={home?.code ?? '?'} flagUrl={home?.flagUrl} size={26} />
-      </div>
-
-      <div className="w-16 shrink-0 text-center font-display text-lg">
-        {played && score.home != null ? (
-          <span>
-            {score.home}<span className="px-1 text-white/30">:</span>{score.away}
+      {tbd ? (
+        <div className="flex flex-1 items-center justify-center gap-3 text-center">
+          <Badge tone="primary">{STAGE_LABEL[match.stage]}</Badge>
+          <span className="text-sm text-white/40">
+            To be determined{slotLabel(match.bracketSlot) ? ` · ${slotLabel(match.bracketSlot)}` : ''}
           </span>
-        ) : (
-          <span className="text-white/30">vs</span>
-        )}
-      </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-1 items-center justify-end gap-3 text-right">
+            <span className="font-medium">{home?.name}</span>
+            <Flag code={home?.code ?? '?'} flagUrl={home?.flagUrl} size={26} />
+          </div>
 
-      <div className="flex flex-1 items-center gap-3">
-        <Flag code={away?.code ?? '?'} flagUrl={away?.flagUrl} size={26} />
-        <span className="font-medium">{away?.name ?? 'TBD'}</span>
-      </div>
+          <div className="w-16 shrink-0 text-center font-display text-lg">
+            {played && score.home != null ? (
+              <span>
+                {score.home}<span className="px-1 text-white/30">:</span>{score.away}
+              </span>
+            ) : (
+              <span className="text-white/30">vs</span>
+            )}
+          </div>
 
-      <div className="hidden w-32 shrink-0 text-right text-xs text-white/30 sm:block">
-        {match.city || STAGE_LABEL[match.stage]}
+          <div className="flex flex-1 items-center gap-3">
+            <Flag code={away?.code ?? '?'} flagUrl={away?.flagUrl} size={26} />
+            <span className="font-medium">{away?.name}</span>
+          </div>
+        </>
+      )}
+
+      <div className="hidden w-40 shrink-0 text-right text-xs text-white/30 sm:block">
+        {match.groupId && typeof match.groupId === 'object'
+          ? `Group ${match.groupId.name}`
+          : match.groupId
+          ? `Group ${match.groupId}`
+          : STAGE_LABEL[match.stage]}
       </div>
     </Link>
   );

@@ -5,8 +5,9 @@ import { useMatchLive } from '../hooks/useMatchLive';
 import { usePredictions } from '../store/predictionSlice';
 import { useAuth } from '../store/authSlice';
 import { STAGE_LABEL, formatKickoff } from '../lib/format';
-import type { ItemResponse, Match, MatchEvent } from '../lib/types';
+import type { ItemResponse, Match, MatchEvent, TeamRef } from '../lib/types';
 import { Flag } from '../components/ui/Flag';
+import { PlayerAvatar } from '../components/ui/PlayerAvatar';
 import { Badge } from '../components/ui/Badge';
 import { GlassCard } from '../components/ui/GlassCard';
 import { StatePanel } from '../components/ui/StatePanel';
@@ -86,11 +87,27 @@ function MatchDetailBody({
     [events],
   );
 
+  // Group context, when this is a populated group-stage match.
+  const groupName =
+    match.groupId && typeof match.groupId === 'object' ? match.groupId.name : null;
+
+  // Finished-match verdict, derived from the final score (real data carries no events).
+  const verdict =
+    status === 'finished' && score.home != null && score.away != null
+      ? score.home === score.away
+        ? `${score.home}–${score.away} draw`
+        : `${(score.home > score.away ? home : away)?.name ?? 'Winner'} won ${Math.max(
+            score.home,
+            score.away,
+          )}–${Math.min(score.home, score.away)}`
+      : null;
+
   return (
     <div className="space-y-6">
-      <div className="text-center text-xs uppercase tracking-wide text-white/40">
-        {STAGE_LABEL[match.stage]}
-        {match.city ? ` · ${match.city}` : ''}
+      <div className="flex items-center justify-center gap-2 text-center text-xs uppercase tracking-wide text-white/40">
+        <span>{STAGE_LABEL[match.stage]}</span>
+        {groupName && <span>· Group {groupName}</span>}
+        {live && <span className="font-semibold text-rose-400">· ● Live</span>}
       </div>
 
       {/* Scoreline */}
@@ -116,10 +133,17 @@ function MatchDetailBody({
               <span className="text-white/30">vs</span>
             )}
           </div>
+          {verdict && <div className="mt-2 text-xs text-white/50">{verdict}</div>}
         </div>
 
         <TeamColumn name={away?.name} code={away?.code} flagUrl={away?.flagUrl} />
       </GlassCard>
+
+      {/* Match info — venue, date, group, matchday */}
+      <MatchInfo match={match} groupName={groupName} />
+
+      {/* Form guide — recent form + FIFA ranking (hidden once events tell the story) */}
+      {!live && <FormGuide home={home ?? undefined} away={away ?? undefined} />}
 
       {/* Your prediction vs the live state */}
       {isAuthed && pick && (
@@ -155,13 +179,16 @@ function MatchDetailBody({
           <ul className="space-y-2">
             {timeline.map((e, i) => {
               const onHome = e.teamId && home && e.teamId === home._id;
-              const scorer = typeof e.playerId === 'object' && e.playerId ? e.playerId.name : null;
+              const player = typeof e.playerId === 'object' && e.playerId ? e.playerId : null;
               return (
                 <li key={i} className={`flex items-center gap-3 text-sm ${onHome ? '' : 'flex-row-reverse text-right'}`}>
                   <span className="w-10 shrink-0 text-white/40 tabular-nums">{e.minute}'</span>
                   <span>{EVENT_ICON[e.type]}</span>
+                  {player && (
+                    <PlayerAvatar name={player.name} photoUrl={player.photoUrl} size={28} />
+                  )}
                   <span className="text-white/80">
-                    {scorer ?? (onHome ? home?.name : away?.name)}
+                    {player?.name ?? (onHome ? home?.name : away?.name)}
                     {e.type !== 'goal' && <span className="ml-1 text-white/40">({e.type})</span>}
                   </span>
                 </li>
@@ -179,6 +206,78 @@ function TeamColumn({ name, code, flagUrl }: { name?: string; code?: string; fla
     <div className="flex flex-1 flex-col items-center gap-2 text-center">
       <Flag code={code ?? '?'} flagUrl={flagUrl} size={48} />
       <span className="text-sm font-medium">{name ?? 'TBD'}</span>
+    </div>
+  );
+}
+
+function MatchInfo({ match, groupName }: { match: Match; groupName: string | null }) {
+  const rows: Array<{ label: string; value: string }> = [
+    { label: 'Kick-off', value: formatKickoff(match.kickoff) },
+    { label: 'Stage', value: STAGE_LABEL[match.stage] },
+  ];
+  if (groupName) rows.push({ label: 'Group', value: `Group ${groupName}` });
+  if (match.stage === 'group' && match.round) rows.push({ label: 'Matchday', value: String(match.round) });
+  if (match.venue) rows.push({ label: 'Venue', value: match.venue });
+
+  return (
+    <GlassCard>
+      <div className="mb-3 text-xs uppercase tracking-wide text-white/40">Match info</div>
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+        {rows.map((r) => (
+          <div key={r.label} className="flex justify-between gap-3 border-b border-white/5 pb-1">
+            <dt className="text-white/40">{r.label}</dt>
+            <dd className="text-right text-white/80">{r.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </GlassCard>
+  );
+}
+
+const FORM_TONE: Record<string, string> = {
+  W: 'bg-emerald-500/20 text-emerald-300',
+  D: 'bg-zinc-500/20 text-zinc-300',
+  L: 'bg-rose-500/20 text-rose-300',
+};
+
+function FormGuide({ home, away }: { home?: TeamRef; away?: TeamRef }) {
+  // Nothing useful to show if neither side has form/ranking data.
+  const hasData = [home, away].some((t) => (t?.form?.length ?? 0) > 0 || (t?.fifaRanking ?? 0) > 0);
+  if (!hasData) return null;
+
+  return (
+    <GlassCard>
+      <div className="mb-3 text-xs uppercase tracking-wide text-white/40">Form guide</div>
+      <div className="space-y-3">
+        <FormRow team={home} align="left" />
+        <FormRow team={away} align="right" />
+      </div>
+    </GlassCard>
+  );
+}
+
+function FormRow({ team, align }: { team?: TeamRef; align: 'left' | 'right' }) {
+  const rank = team?.fifaRanking ?? 0;
+  const form = team?.form ?? [];
+  return (
+    <div className={`flex items-center gap-3 ${align === 'right' ? 'flex-row-reverse text-right' : ''}`}>
+      <Flag code={team?.code ?? '?'} flagUrl={team?.flagUrl} size={22} />
+      <span className="flex-1 text-sm font-medium">{team?.name ?? 'TBD'}</span>
+      {rank > 0 && <span className="text-xs text-white/40">FIFA #{rank}</span>}
+      <div className="flex gap-1">
+        {form.length === 0 ? (
+          <span className="text-xs text-white/30">No recent form</span>
+        ) : (
+          form.slice(-5).map((r, i) => (
+            <span
+              key={i}
+              className={`grid h-5 w-5 place-items-center rounded text-[10px] font-bold ${FORM_TONE[r] ?? 'bg-white/10 text-white/60'}`}
+            >
+              {r}
+            </span>
+          ))
+        )}
+      </div>
     </div>
   );
 }

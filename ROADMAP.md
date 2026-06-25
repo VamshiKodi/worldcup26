@@ -14,6 +14,7 @@ commands you can give me next.
 | 7 | **Admin dashboard** | CRUD for teams/players/matches, analytics, moderation | ✅ Done |
 | 8 | **Production hardening** | Code splitting, caching, Lighthouse 90+, deploy configs | ✅ Done |
 | 9 | **Live match updates** | Auto-advancing live engine, realtime score/clock/timeline, goal toasts | ✅ Done |
+| 10 | **Real data (football-data.org)** | Import real teams/fixtures/standings/form/scorers; real live sync replaces the simulator when a token is set | ✅ Done |
 
 ---
 
@@ -70,6 +71,22 @@ commands you can give me next.
   `/matches/:id` detail page (clock + event timeline + your-prediction-vs-live), live-ticking
   fixtures list, and a dependency-free toast system for goal / full-time alerts
 - Config via `LIVE_*` env vars; `LIVE_AUTOKICKOFF=on` + a low `LIVE_TICK_MS` gives a hands-off demo
+
+## Phase 10 — Real data (football-data.org)
+- Typed football-data.org v4 client (`services/footballData.ts`): teams, standings, matches, live, scorers
+- Pure mapping layer (`services/wcMapping.ts`): confederation, stage, group letter, status, recent form,
+  position, unique 3-letter codes
+- Curated FIFA world-ranking table (`services/fifaRankings.ts`) — no free API exposes it
+- Sync service (`services/syncService.ts`): idempotent `importStaticData` (teams + groups + real form/stats
+  + fixtures) and `importScorers` (real top scorers as players, upsert by `apiId`), plus `startLiveSync`
+  that polls in-play fixtures and broadcasts over the Phase 9 Socket.io channels — full-time reuses the
+  existing settle + standings + cache-bust path
+- One-shot importer (`scripts/importWorldCup.ts`) wired as `npm run import:wc` (`-- --players` for scorers)
+- `apiId` added to Team/Player/Match models; `config/env.ts` gains `footballData` + `hasRealData`
+- `server.ts`: when `FOOTBALL_DATA_TOKEN` is set, real live sync replaces the simulated engine
+- Config via `FOOTBALL_DATA_*` env vars (token, URL, competition, poll interval)
+- Free tier: real fixtures/scores/standings/form/scorers; live scores are delayed (not tick-by-tick),
+  and the seed never fabricates results (all-`scheduled` until a real import runs)
 
 ---
 

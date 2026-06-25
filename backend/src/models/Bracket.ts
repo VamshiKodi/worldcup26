@@ -11,7 +11,7 @@ const slotSchema = new Schema(
 
 const bracketSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     rounds: {
       r32: { type: [slotSchema], default: [] },
       r16: { type: [slotSchema], default: [] },

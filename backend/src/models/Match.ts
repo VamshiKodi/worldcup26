@@ -12,6 +12,7 @@ const matchEventSchema = new Schema(
 
 const matchSchema = new Schema(
   {
+    apiId: { type: Number, index: true, sparse: true }, // external id (football-data.org) for idempotent sync
     stage: {
       type: String,
       enum: ['group', 'r32', 'r16', 'qf', 'sf', 'third', 'final'],
@@ -19,8 +20,10 @@ const matchSchema = new Schema(
       index: true,
     },
     groupId: { type: Schema.Types.ObjectId, ref: 'Group', default: null },
-    homeTeamId: { type: Schema.Types.ObjectId, ref: 'Team', required: true },
-    awayTeamId: { type: Schema.Types.ObjectId, ref: 'Team', required: true },
+    // Knockout fixtures exist on the schedule before the draw is known, so teams are nullable
+    // (TBD). Group-stage matches always carry both. The frontend renders missing teams as "TBD".
+    homeTeamId: { type: Schema.Types.ObjectId, ref: 'Team', default: null },
+    awayTeamId: { type: Schema.Types.ObjectId, ref: 'Team', default: null },
     venue: { type: String, default: '' },
     city: { type: String, default: '' },
     kickoff: { type: Date, required: true, index: true },

@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useApi } from '../../hooks/useApi';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useIsDesktop } from '../../hooks/useIsDesktop';
 import type { ListResponse, Team } from '../../lib/types';
 import { GlassCard } from '../ui/GlassCard';
 import { Flag } from '../ui/Flag';
@@ -16,6 +17,9 @@ gsap.registerPlugin(ScrollTrigger);
  */
 export function TeamsShowcase() {
   const reduced = useReducedMotion();
+  const isDesktop = useIsDesktop();
+  // Pinning + horizontal scrub only on desktop; touch devices get native overflow scroll.
+  const pinned = isDesktop && !reduced;
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
@@ -23,7 +27,7 @@ export function TeamsShowcase() {
   const teams = body?.data ?? [];
 
   useLayoutEffect(() => {
-    if (reduced || teams.length === 0) return;
+    if (!pinned || teams.length === 0) return;
 
     const ctx = gsap.context(() => {
       const track = trackRef.current;
@@ -50,7 +54,7 @@ export function TeamsShowcase() {
     // Layout settles after data + flags load; recompute trigger bounds.
     ScrollTrigger.refresh();
     return () => ctx.revert();
-  }, [reduced, teams.length]);
+  }, [pinned, teams.length]);
 
   if (teams.length === 0) return null;
 
@@ -74,8 +78,8 @@ export function TeamsShowcase() {
     </GlassCard>
   ));
 
-  // Reduced motion: simple, accessible horizontal scroll.
-  if (reduced) {
+  // Mobile / reduced motion: simple, accessible native horizontal scroll (no pin).
+  if (!pinned) {
     return (
       <section className="py-20">
         <Header />

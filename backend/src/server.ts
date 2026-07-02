@@ -4,6 +4,7 @@ import { Server as SocketServer } from 'socket.io';
 import { createApp } from './app.js';
 import { connectDB } from './config/db.js';
 import { env, hasRealData } from './config/env.js';
+import { corsOrigin } from './config/cors.js';
 import { registerSocketHandlers } from './sockets/index.js';
 import { startLiveEngine } from './services/liveEngine.js';
 import {
@@ -21,7 +22,7 @@ async function bootstrap() {
   const server = http.createServer(app);
 
   const io = new SocketServer(server, {
-    cors: { origin: env.clientUrl, credentials: true },
+    cors: { origin: corsOrigin, credentials: true },
   });
   registerSocketHandlers(io);
 

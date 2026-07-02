@@ -3,6 +3,7 @@ import Lenis from 'lenis';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useReducedMotion } from '../hooks/useReducedMotion';
+import { useIsDesktop } from '../hooks/useIsDesktop';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -21,9 +22,12 @@ export function scrollToTop(immediate = true) {
  */
 export function SmoothScrollProvider({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
+  const isDesktop = useIsDesktop();
 
   useEffect(() => {
-    if (reduced) return;
+    // Desktop-only: Lenis smooth-wheel fights native touch scrolling and, combined with
+    // GSAP pinning, locks up scroll on phones/tablets. Mobile keeps native scroll.
+    if (reduced || !isDesktop) return;
 
     const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
     lenisInstance = lenis;
@@ -39,7 +43,7 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
       lenis.destroy();
       lenisInstance = null;
     };
-  }, [reduced]);
+  }, [reduced, isDesktop]);
 
   return <>{children}</>;
 }

@@ -9,11 +9,21 @@ function required(name: string, fallback?: string): string {
   return value;
 }
 
+// CLIENT_URL is used for CORS (Access-Control-Allow-Origin) and Socket.IO. Browsers send the
+// `Origin` header with NO trailing slash, so we strip any trailing slash(es) here — otherwise a
+// value like "https://site.app/" never matches the browser's "https://site.app" and every
+// cross-origin request is blocked. A comma-separated list is supported for multiple frontends.
+const clientUrls = (process.env.CLIENT_URL ?? 'http://localhost:5173')
+  .split(',')
+  .map((url) => url.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   isProd: process.env.NODE_ENV === 'production',
   port: Number(process.env.PORT ?? 4000),
-  clientUrl: process.env.CLIENT_URL ?? 'http://localhost:5173',
+  clientUrl: clientUrls[0], // primary origin (e.g. for secure-cookie / redirect defaults)
+  clientUrls, // full allow-list for CORS
   mongoUri: required('MONGODB_URI', 'mongodb://127.0.0.1:27017/worldcup26'),
   jwt: {
     accessSecret: required('JWT_ACCESS_SECRET', 'dev-access-secret'),

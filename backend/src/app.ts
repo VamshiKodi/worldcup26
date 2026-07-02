@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env.js';
+import { corsOrigin } from './config/cors.js';
 import { apiRouter } from './routes/index.js';
 import { errorHandler, notFound } from './middleware/error.js';
 
@@ -22,7 +23,7 @@ export function createApp(): Application {
   app.use(cookieParser());
   app.use(
     cors({
-      origin: env.clientUrl,
+      origin: corsOrigin,
       credentials: true,
     }),
   );

@@ -11,7 +11,9 @@
     "start": "node dist/server.js",
     "seed": "tsx src/scripts/seed.ts",
     "import:wc": "tsx src/scripts/importWorldCup.ts",
+    "import:wc:players": "tsx src/scripts/importWorldCup.ts --players",
     "enrich:photos": "tsx src/scripts/enrichPhotos.ts",
+    "evaluate:predictions": "tsx src/scripts/evaluatePredictions.ts",
     "lint": "eslint \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit"
   },
@@ -32,6 +34,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/compression": "^1.7.5",
     "@types/cookie-parser": "^1.4.7",
@@ -40,7 +43,9 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/morgan": "^1.9.9",
     "@types/node": "^20.14.0",
+    "eslint": "^9.39.4",
     "tsx": "^4.16.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "typescript-eslint": "^8.62.0"
   }
 }

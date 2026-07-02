@@ -100,6 +100,10 @@ export interface Match {
   kickoff: string;
   status: MatchStatus;
   score: MatchScore;
+  halfTime?: MatchScore;
+  referee?: string;
+  winner?: 'HOME_TEAM' | 'AWAY_TEAM' | 'DRAW' | null;
+  duration?: 'REGULAR' | 'EXTRA_TIME' | 'PENALTY_SHOOTOUT' | string;
   minute?: number;
   events?: MatchEvent[];
   round?: number;

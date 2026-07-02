@@ -9,11 +9,11 @@ export default defineConfig({
     sourcemap: false,
     // `three` is a deliberately large, lazy-loaded vendor chunk (hero only) — it
     // never blocks first paint, so the default 500 kB warning is noise here.
-    chunkSizeWarningLimit: 1200,
+    chunkSizeWarningLimit: 1500,
     rollupOptions: {
       output: {
         manualChunks: {
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
+          three: ['three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
           motion: ['framer-motion', 'gsap', 'lenis'],
           react: ['react', 'react-dom', 'react-router-dom'],
         },

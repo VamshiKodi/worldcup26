@@ -12,79 +12,79 @@ export interface SeedTeam {
   group: string; // 'A'..'L'
 }
 
-// 12 groups (A–L), 4 teams each.
+// 12 groups (A–L), 4 teams each - Actual World Cup 2026 groups
 export const SEED_TEAMS: SeedTeam[] = [
-  // Group A
+  // Group A: Mexico, Czech Republic, South Africa, South Korea
   { name: 'Mexico', code: 'MEX', confederation: 'CONCACAF', fifaRanking: 15, isHost: true, group: 'A' },
-  { name: 'Croatia', code: 'CRO', confederation: 'UEFA', fifaRanking: 10, group: 'A' },
-  { name: 'Ecuador', code: 'ECU', confederation: 'CONMEBOL', fifaRanking: 31, group: 'A' },
-  { name: 'Ghana', code: 'GHA', confederation: 'CAF', fifaRanking: 68, group: 'A' },
-  // Group B
+  { name: 'Czech Republic', code: 'CZE', confederation: 'UEFA', fifaRanking: 32, group: 'A' },
+  { name: 'South Africa', code: 'RSA', confederation: 'CAF', fifaRanking: 58, group: 'A' },
+  { name: 'South Korea', code: 'KOR', confederation: 'AFC', fifaRanking: 23, group: 'A' },
+  // Group B: Canada, Bosnia and Herzegovina, Qatar, Switzerland
   { name: 'Canada', code: 'CAN', confederation: 'CONCACAF', fifaRanking: 48, isHost: true, group: 'B' },
-  { name: 'Belgium', code: 'BEL', confederation: 'UEFA', fifaRanking: 6, group: 'B' },
-  { name: 'Japan', code: 'JPN', confederation: 'AFC', fifaRanking: 18, group: 'B' },
-  { name: 'Morocco', code: 'MAR', confederation: 'CAF', fifaRanking: 13, group: 'B' },
-  // Group C
-  { name: 'United States', code: 'USA', confederation: 'CONCACAF', fifaRanking: 11, isHost: true, group: 'C' },
-  { name: 'England', code: 'ENG', confederation: 'UEFA', fifaRanking: 4, group: 'C' },
-  { name: 'Senegal', code: 'SEN', confederation: 'CAF', fifaRanking: 17, group: 'C' },
-  { name: 'South Korea', code: 'KOR', confederation: 'AFC', fifaRanking: 23, group: 'C' },
-  // Group D
-  { name: 'Argentina', code: 'ARG', confederation: 'CONMEBOL', fifaRanking: 1, group: 'D' },
-  { name: 'Poland', code: 'POL', confederation: 'UEFA', fifaRanking: 28, group: 'D' },
+  { name: 'Bosnia and Herzegovina', code: 'BIH', confederation: 'UEFA', fifaRanking: 55, group: 'B' },
+  { name: 'Qatar', code: 'QAT', confederation: 'AFC', fifaRanking: 35, group: 'B' },
+  { name: 'Switzerland', code: 'SUI', confederation: 'UEFA', fifaRanking: 19, group: 'B' },
+  // Group C: Brazil, Haiti, Morocco, Scotland
+  { name: 'Brazil', code: 'BRA', confederation: 'CONMEBOL', fifaRanking: 5, group: 'C' },
+  { name: 'Haiti', code: 'HAI', confederation: 'CONCACAF', fifaRanking: 85, group: 'C' },
+  { name: 'Morocco', code: 'MAR', confederation: 'CAF', fifaRanking: 13, group: 'C' },
+  { name: 'Scotland', code: 'SCO', confederation: 'UEFA', fifaRanking: 45, group: 'C' },
+  // Group D: United States, Australia, Paraguay, Turkey
+  { name: 'United States', code: 'USA', confederation: 'CONCACAF', fifaRanking: 11, isHost: true, group: 'D' },
   { name: 'Australia', code: 'AUS', confederation: 'AFC', fifaRanking: 24, group: 'D' },
-  { name: 'Nigeria', code: 'NGA', confederation: 'CAF', fifaRanking: 38, group: 'D' },
-  // Group E
-  { name: 'France', code: 'FRA', confederation: 'UEFA', fifaRanking: 2, group: 'E' },
-  { name: 'Uruguay', code: 'URU', confederation: 'CONMEBOL', fifaRanking: 16, group: 'E' },
-  { name: 'Iran', code: 'IRN', confederation: 'AFC', fifaRanking: 20, group: 'E' },
-  { name: 'Egypt', code: 'EGY', confederation: 'CAF', fifaRanking: 36, group: 'E' },
-  // Group F
-  { name: 'Brazil', code: 'BRA', confederation: 'CONMEBOL', fifaRanking: 5, group: 'F' },
+  { name: 'Paraguay', code: 'PAR', confederation: 'CONMEBOL', fifaRanking: 56, group: 'D' },
+  { name: 'Turkey', code: 'TUR', confederation: 'UEFA', fifaRanking: 42, group: 'D' },
+  // Group E: Curacao, Ecuador, Germany, Ivory Coast
+  { name: 'Curacao', code: 'CUW', confederation: 'CONCACAF', fifaRanking: 86, group: 'E' },
+  { name: 'Ecuador', code: 'ECU', confederation: 'CONMEBOL', fifaRanking: 31, group: 'E' },
+  { name: 'Germany', code: 'GER', confederation: 'UEFA', fifaRanking: 16, group: 'E' },
+  { name: 'Ivory Coast', code: 'CIV', confederation: 'CAF', fifaRanking: 40, group: 'E' },
+  // Group F: Netherlands, Japan, Sweden, Tunisia
   { name: 'Netherlands', code: 'NED', confederation: 'UEFA', fifaRanking: 7, group: 'F' },
-  { name: 'Saudi Arabia', code: 'KSA', confederation: 'AFC', fifaRanking: 56, group: 'F' },
-  { name: 'Ivory Coast', code: 'CIV', confederation: 'CAF', fifaRanking: 40, group: 'F' },
-  // Group G
-  { name: 'Portugal', code: 'POR', confederation: 'UEFA', fifaRanking: 3, group: 'G' },
-  { name: 'Colombia', code: 'COL', confederation: 'CONMEBOL', fifaRanking: 12, group: 'G' },
-  { name: 'Qatar', code: 'QAT', confederation: 'AFC', fifaRanking: 35, group: 'G' },
-  { name: 'Cameroon', code: 'CMR', confederation: 'CAF', fifaRanking: 42, group: 'G' },
-  // Group H
+  { name: 'Japan', code: 'JPN', confederation: 'AFC', fifaRanking: 18, group: 'F' },
+  { name: 'Sweden', code: 'SWE', confederation: 'UEFA', fifaRanking: 26, group: 'F' },
+  { name: 'Tunisia', code: 'TUN', confederation: 'CAF', fifaRanking: 28, group: 'F' },
+  // Group G: Belgium, Egypt, Iran, New Zealand
+  { name: 'Belgium', code: 'BEL', confederation: 'UEFA', fifaRanking: 6, group: 'G' },
+  { name: 'Egypt', code: 'EGY', confederation: 'CAF', fifaRanking: 36, group: 'G' },
+  { name: 'Iran', code: 'IRN', confederation: 'AFC', fifaRanking: 20, group: 'G' },
+  { name: 'New Zealand', code: 'NZL', confederation: 'OFC', fifaRanking: 95, group: 'G' },
+  // Group H: Cape Verde, Saudi Arabia, Spain, Uruguay
+  { name: 'Cape Verde', code: 'CPV', confederation: 'CAF', fifaRanking: 65, group: 'H' },
+  { name: 'Saudi Arabia', code: 'KSA', confederation: 'AFC', fifaRanking: 56, group: 'H' },
   { name: 'Spain', code: 'ESP', confederation: 'UEFA', fifaRanking: 8, group: 'H' },
-  { name: 'Peru', code: 'PER', confederation: 'CONMEBOL', fifaRanking: 33, group: 'H' },
-  { name: 'Costa Rica', code: 'CRC', confederation: 'CONCACAF', fifaRanking: 52, group: 'H' },
-  { name: 'Tunisia', code: 'TUN', confederation: 'CAF', fifaRanking: 41, group: 'H' },
-  // Group I
-  { name: 'Germany', code: 'GER', confederation: 'UEFA', fifaRanking: 9, group: 'I' },
-  { name: 'Paraguay', code: 'PAR', confederation: 'CONMEBOL', fifaRanking: 54, group: 'I' },
-  { name: 'Panama', code: 'PAN', confederation: 'CONCACAF', fifaRanking: 44, group: 'I' },
-  { name: 'Algeria', code: 'ALG', confederation: 'CAF', fifaRanking: 43, group: 'I' },
-  // Group J
-  { name: 'Italy', code: 'ITA', confederation: 'UEFA', fifaRanking: 14, group: 'J' },
-  { name: 'Switzerland', code: 'SUI', confederation: 'UEFA', fifaRanking: 19, group: 'J' },
-  { name: 'New Zealand', code: 'NZL', confederation: 'OFC', fifaRanking: 95, group: 'J' },
-  { name: 'Jamaica', code: 'JAM', confederation: 'CONCACAF', fifaRanking: 55, group: 'J' },
-  // Group K
-  { name: 'Denmark', code: 'DEN', confederation: 'UEFA', fifaRanking: 21, group: 'K' },
-  { name: 'Chile', code: 'CHI', confederation: 'CONMEBOL', fifaRanking: 39, group: 'K' },
-  { name: 'United Arab Emirates', code: 'UAE', confederation: 'AFC', fifaRanking: 64, group: 'K' },
-  { name: 'South Africa', code: 'RSA', confederation: 'CAF', fifaRanking: 58, group: 'K' },
-  // Group L
-  { name: 'Austria', code: 'AUT', confederation: 'UEFA', fifaRanking: 22, group: 'L' },
-  { name: 'Serbia', code: 'SRB', confederation: 'UEFA', fifaRanking: 27, group: 'L' },
-  { name: 'Honduras', code: 'HON', confederation: 'CONCACAF', fifaRanking: 71, group: 'L' },
-  { name: 'Mali', code: 'MLI', confederation: 'CAF', fifaRanking: 49, group: 'L' },
+  { name: 'Uruguay', code: 'URU', confederation: 'CONMEBOL', fifaRanking: 16, group: 'H' },
+  // Group I: France, Norway, Senegal, Iraq
+  { name: 'France', code: 'FRA', confederation: 'UEFA', fifaRanking: 2, group: 'I' },
+  { name: 'Norway', code: 'NOR', confederation: 'UEFA', fifaRanking: 43, group: 'I' },
+  { name: 'Senegal', code: 'SEN', confederation: 'CAF', fifaRanking: 17, group: 'I' },
+  { name: 'Iraq', code: 'IRQ', confederation: 'AFC', fifaRanking: 55, group: 'I' },
+  // Group J: Algeria, Argentina, Austria, Jordan
+  { name: 'Algeria', code: 'DZA', confederation: 'CAF', fifaRanking: 33, group: 'J' },
+  { name: 'Argentina', code: 'ARG', confederation: 'CONMEBOL', fifaRanking: 1, group: 'J' },
+  { name: 'Austria', code: 'AUT', confederation: 'UEFA', fifaRanking: 25, group: 'J' },
+  { name: 'Jordan', code: 'JOR', confederation: 'AFC', fifaRanking: 70, group: 'J' },
+  // Group K: Colombia, DR Congo, Portugal, Uzbekistan
+  { name: 'Colombia', code: 'COL', confederation: 'CONMEBOL', fifaRanking: 12, group: 'K' },
+  { name: 'DR Congo', code: 'COD', confederation: 'CAF', fifaRanking: 55, group: 'K' },
+  { name: 'Portugal', code: 'POR', confederation: 'UEFA', fifaRanking: 3, group: 'K' },
+  { name: 'Uzbekistan', code: 'UZB', confederation: 'AFC', fifaRanking: 60, group: 'K' },
+  // Group L: Croatia, England, Ghana, Panama
+  { name: 'Croatia', code: 'CRO', confederation: 'UEFA', fifaRanking: 10, group: 'L' },
+  { name: 'England', code: 'ENG', confederation: 'UEFA', fifaRanking: 4, group: 'L' },
+  { name: 'Ghana', code: 'GHA', confederation: 'CAF', fifaRanking: 68, group: 'L' },
+  { name: 'Panama', code: 'PAN', confederation: 'CONCACAF', fifaRanking: 50, group: 'L' },
 ];
 
 export const GROUP_NAMES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
 // Star players across the field for the showcase / golden-boot race.
 // Headshots are Wikipedia/Wikimedia thumbnails resolved by player name.
+// Only players from teams in the actual World Cup 2026 groups
 export const SEED_PLAYERS = [
   { name: "Lionel Messi", code: "ARG", position: "FW", number: 10, club: "Inter Miami", age: 38, goals: 4, assists: 3, xg: 3.6, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Lionel_Messi_NE_Revolution_Inter_Miami_7.9.25-178_%28cropped_2%29.jpg/330px-Lionel_Messi_NE_Revolution_Inter_Miami_7.9.25-178_%28cropped_2%29.jpg" },
   { name: "Julián Álvarez", code: "ARG", position: "FW", number: 9, club: "Atlético Madrid", age: 26, goals: 3, assists: 2, xg: 3.1, photo: "https://upload.wikimedia.org/wikipedia/commons/0/03/Argentina_national_football_team_-_2_-_2022_%28Juli%C3%A1n_%C3%81lvarez%29.jpg" },
   { name: "Enzo Fernández", code: "ARG", position: "MF", number: 24, club: "Chelsea", age: 25, goals: 1, assists: 3, xg: 1.2, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Enzo_Fern%C3%A1ndez_2025_FIFA_Club_World_Cup_Final.jpg/330px-Enzo_Fern%C3%A1ndez_2025_FIFA_Club_World_Cup_Final.jpg" },
-  { name: "Emiliano Martínez", code: "ARG", position: "GK", number: 23, club: "Aston Villa", age: 33, goals: 0, assists: 0, xg: 0, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/St._Louis_City_vs_Aston_Villa_%28Jul_2025%29_14_%28Emiliano_Mart%C3%ADnez%29.jpg/330px-St._Louis_City_vs_Aston_Villa_%28Jul_2025%29_14_%28Emiliano_Mart%C3%ADnez%29.jpg" },
   { name: "Lautaro Martínez", code: "ARG", position: "FW", number: 22, club: "Inter", age: 28, goals: 4, assists: 0, xg: 3.4, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Lautaro_Martinez_ARGENTINA_VS_VENEZUELA_2017.jpg/330px-Lautaro_Martinez_ARGENTINA_VS_VENEZUELA_2017.jpg" },
   { name: "Kylian Mbappé", code: "FRA", position: "FW", number: 10, club: "Real Madrid", age: 27, goals: 5, assists: 2, xg: 4.9, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Picture_with_Mbapp%C3%A9_%28cropped_and_rotated%29.jpg/330px-Picture_with_Mbapp%C3%A9_%28cropped_and_rotated%29.jpg" },
   { name: "Antoine Griezmann", code: "FRA", position: "FW", number: 7, club: "Atlético Madrid", age: 35, goals: 2, assists: 3, xg: 2.1, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/FRA-ARG_%2810%29_%28cropped%29.jpg/330px-FRA-ARG_%2810%29_%28cropped%29.jpg" },
@@ -122,8 +122,6 @@ export const SEED_PLAYERS = [
   { name: "Darwin Núñez", code: "URU", position: "FW", number: 9, club: "Al Hilal SFC", age: 26, goals: 3, assists: 1, xg: 3, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Darwin_N%C3%BA%C3%B1ez_%28cropped%29.jpg/330px-Darwin_N%C3%BA%C3%B1ez_%28cropped%29.jpg" },
   { name: "Luis Díaz", code: "COL", position: "FW", number: 7, club: "Bayern Munich", age: 29, goals: 3, assists: 2, xg: 2.5, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/FC_RB_Salzburg_gegen_FC_Bayern_M%C3%BCnchen_%282026-01-06_Testspiel%29_40_%28Luiz_D%C3%ADaz%29.jpg/330px-FC_RB_Salzburg_gegen_FC_Bayern_M%C3%BCnchen_%282026-01-06_Testspiel%29_40_%28Luiz_D%C3%ADaz%29.jpg" },
   { name: "James Rodríguez", code: "COL", position: "MF", number: 10, club: "Club León", age: 34, goals: 1, assists: 4, xg: 1, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/James_Rodriguez_2018.jpg/330px-James_Rodriguez_2018.jpg" },
-  { name: "Gianluigi Donnarumma", code: "ITA", position: "GK", number: 1, club: "Manchester City", age: 27, goals: 0, assists: 0, xg: 0, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Norway_Italy_-_June_2025_A_17_%28Gianluigi_Donnarumma%29.jpg/330px-Norway_Italy_-_June_2025_A_17_%28Gianluigi_Donnarumma%29.jpg" },
-  { name: "Federico Chiesa", code: "ITA", position: "FW", number: 14, club: "Liverpool", age: 28, goals: 2, assists: 1, xg: 1.7, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Federico_Chiesa_vs_Zenit_2021-10-20_%28cropped2%29.jpg/330px-Federico_Chiesa_vs_Zenit_2021-10-20_%28cropped2%29.jpg" },
   { name: "Christian Pulisic", code: "USA", position: "FW", number: 10, club: "AC Milan", age: 27, goals: 2, assists: 3, xg: 1.7, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Christian_Pulisic_USMNT_v_Belgium_Mar_28_2026-73_%28cropped%29.jpg/330px-Christian_Pulisic_USMNT_v_Belgium_Mar_28_2026-73_%28cropped%29.jpg" },
   { name: "Weston McKennie", code: "USA", position: "MF", number: 8, club: "Juventus", age: 27, goals: 1, assists: 1, xg: 0.7, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Weston_McKennie_USMNT_v_Belgium_Mar_28_2026-68_%28cropped%29.jpg/330px-Weston_McKennie_USMNT_v_Belgium_Mar_28_2026-68_%28cropped%29.jpg" },
   { name: "Santiago Giménez", code: "MEX", position: "FW", number: 9, club: "AC Milan", age: 25, goals: 3, assists: 0, xg: 2.6, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Santiago_Gim%C3%A9nez.png/330px-Santiago_Gim%C3%A9nez.png" },
@@ -132,15 +130,10 @@ export const SEED_PLAYERS = [
   { name: "Jonathan David", code: "CAN", position: "FW", number: 20, club: "Juventus", age: 26, goals: 4, assists: 1, xg: 3.4, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Jonathan_David_asse_losc_2425_%28cropped%29.jpg/330px-Jonathan_David_asse_losc_2425_%28cropped%29.jpg" },
   { name: "Achraf Hakimi", code: "MAR", position: "DF", number: 2, club: "Paris Saint-Germain", age: 27, goals: 1, assists: 3, xg: 0.9, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Achraf_Hakimi_Morocco_v_Norway_7_June_2026-16.jpg/330px-Achraf_Hakimi_Morocco_v_Norway_7_June_2026-16.jpg" },
   { name: "Sadio Mané", code: "SEN", position: "FW", number: 10, club: "Al-Nassr", age: 33, goals: 3, assists: 1, xg: 2.6, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Sadio_Mane_Al-Nassr.jpg/330px-Sadio_Mane_Al-Nassr.jpg" },
-  { name: "Victor Osimhen", code: "NGA", position: "FW", number: 9, club: "Galatasaray", age: 27, goals: 5, assists: 0, xg: 4.3, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Victor-osimhen-nigeria-2024-3-4.jpg/330px-Victor-osimhen-nigeria-2024-3-4.jpg" },
   { name: "Mohamed Salah", code: "EGY", position: "FW", number: 10, club: "Liverpool", age: 33, goals: 5, assists: 3, xg: 4.4, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Mohamed_Salah_2018.jpg/330px-Mohamed_Salah_2018.jpg" },
   { name: "Son Heung-min", code: "KOR", position: "FW", number: 7, club: "Los Angeles FC", age: 33, goals: 3, assists: 2, xg: 2.5, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/BFA_2023_-2_Heung-Min_Son_%28cropped%29.jpg/330px-BFA_2023_-2_Heung-Min_Son_%28cropped%29.jpg" },
   { name: "Takefusa Kubo", code: "JPN", position: "MF", number: 11, club: "Real Sociedad", age: 24, goals: 2, assists: 2, xg: 1.4, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Takefusa_Kubo_2019.png/330px-Takefusa_Kubo_2019.png" },
-  { name: "Robert Lewandowski", code: "POL", position: "FW", number: 9, club: "FC Barcelona", age: 37, goals: 4, assists: 1, xg: 3.8, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/2019147183134_2019-05-27_Fussball_1.FC_Kaiserslautern_vs_FC_Bayern_M%C3%BCnchen_-_Sven_-_1D_X_MK_II_-_0228_-_B70I8527_%28cropped%29.jpg/330px-2019147183134_2019-05-27_Fussball_1.FC_Kaiserslautern_vs_FC_Bayern_M%C3%BCnchen_-_Sven_-_1D_X_MK_II_-_0228_-_B70I8527_%28cropped%29.jpg" },
   { name: "Granit Xhaka", code: "SUI", position: "MF", number: 10, club: "Bayer Leverkusen", age: 33, goals: 1, assists: 1, xg: 0.6, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Granit_Xhaka_%28cropped%29.jpg/330px-Granit_Xhaka_%28cropped%29.jpg" },
-  { name: "Dušan Vlahović", code: "SRB", position: "FW", number: 9, club: "Juventus", age: 26, goals: 3, assists: 0, xg: 2.9, photo: "https://upload.wikimedia.org/wikipedia/commons/d/d9/Incontro_con_le_squadre_finaliste_della_Coppa_Italia_di_calcio_Frecciarossa_Atalanta_-_Juventus_05_%28Du%C5%A1an_Vlahovi%C4%87%29.jpg" },
-  { name: "Rasmus Højlund", code: "DEN", position: "FW", number: 9, club: "Napoli", age: 23, goals: 2, assists: 1, xg: 2, photo: "https://upload.wikimedia.org/wikipedia/commons/d/d3/Rasmus_H%C3%B8jlund_with_a_fan.jpg" },
-  { name: "André Onana", code: "CMR", position: "GK", number: 24, club: "Manchester United", age: 30, goals: 0, assists: 0, xg: 0, photo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Andr%C3%A9_Onana.jpg/330px-Andr%C3%A9_Onana.jpg" },
   { name: "Mehdi Taremi", code: "IRN", position: "FW", number: 9, club: "Inter Milan", age: 33, goals: 2, assists: 1, xg: 1.8, photo: "https://upload.wikimedia.org/wikipedia/commons/7/74/Iran_-_Japan%2C_AFC_Asian_Cup_2019_42_%28cropped%29.jpg" },
 ];
 

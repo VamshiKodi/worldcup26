@@ -13,31 +13,70 @@ import { PlayerModel } from '../models/index.js';
 const UA = 'worldcup26-app/1.0 (educational project; player headshot lookup)';
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Resolve a Wikipedia REST summary thumbnail for a title; '' when none/!ok. Retries on 429. */
-async function thumbFor(title: string): Promise<string> {
+interface Summary {
+  type?: string;
+  description?: string;
+  extract?: string;
+  thumbnail?: { source?: string };
+}
+
+/** Fetch a Wikipedia REST summary for a title; null when missing/!ok. Retries on 429. */
+async function summaryFor(title: string): Promise<Summary | null> {
   const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const r = await fetch(url, { headers: { 'User-Agent': UA, accept: 'application/json' } });
       if (r.status === 429) { await sleep(800 * (attempt + 1)); continue; }
-      if (!r.ok) return '';
-      const j = (await r.json()) as { thumbnail?: { source?: string }; type?: string };
-      if (j.type === 'disambiguation') return '';
-      return j.thumbnail?.source ?? '';
+      if (!r.ok) return null;
+      return (await r.json()) as Summary;
     } catch {
       await sleep(400);
     }
   }
-  return '';
+  return null;
 }
 
-/** Try the plain name, then a couple of footballer-disambiguated titles. */
+const thumbOf = (s: Summary | null): string =>
+  s && s.type !== 'disambiguation' ? (s.thumbnail?.source ?? '') : '';
+
+/** Guard against grabbing the wrong person: the article must read like a footballer. */
+const looksLikeFootballer = (s: Summary): boolean =>
+  /footballer|soccer|football/i.test(`${s.description ?? ''} ${s.extract ?? ''}`);
+
+/** Resolve the canonical article title via the search API (handles name-order,
+ * disambiguation and spelling variants). Biased toward footballers. Retries on 429. */
+async function searchTitles(name: string): Promise<string[]> {
+  const url =
+    `https://en.wikipedia.org/w/api.php?action=query&list=search&format=json&srlimit=5` +
+    `&srsearch=${encodeURIComponent(`${name} footballer`)}`;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const r = await fetch(url, { headers: { 'User-Agent': UA, accept: 'application/json' } });
+      if (r.status === 429) { await sleep(800 * (attempt + 1)); continue; }
+      if (!r.ok) return [];
+      const j = (await r.json()) as { query?: { search?: Array<{ title?: string }> } };
+      return (j.query?.search ?? []).map((s) => s.title).filter((t): t is string => !!t);
+    } catch {
+      await sleep(400);
+    }
+  }
+  return [];
+}
+
+/** Try exact/disambiguated titles first (high confidence), then fall back to a
+ * search that resolves name-order/disambiguation/spelling variants. */
 async function photoForName(name: string): Promise<string> {
-  const candidates = [name, `${name} (footballer)`, `${name} (soccer)`];
-  for (const c of candidates) {
-    const t = await thumbFor(c);
+  for (const c of [name, `${name} (footballer)`, `${name} (soccer)`]) {
+    const t = thumbOf(await summaryFor(c));
     if (t) return t;
     await sleep(120);
+  }
+  for (const title of await searchTitles(name)) {
+    const s = await summaryFor(title);
+    await sleep(120);
+    if (!s || s.type === 'disambiguation') continue;
+    const t = thumbOf(s);
+    if (t && looksLikeFootballer(s)) return t;
   }
   return '';
 }

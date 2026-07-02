@@ -17,6 +17,7 @@ import {
 } from '../models/index.js';
 import { hashPassword } from '../utils/password.js';
 import { SEED_TEAMS, GROUP_NAMES, SEED_PLAYERS, SEED_ACHIEVEMENTS } from './seedData.js';
+import { ACTUAL_MATCH_RESULTS } from './matchResults.js';
 import { recomputeGroupStandings } from '../services/standingsService.js';
 
 const FLAG = (code: string) => `https://flagcdn.com/w320/${code.toLowerCase().slice(0, 2)}.png`;
@@ -31,21 +32,23 @@ function generateRandomForm(): string[] {
   return form;
 }
 
-// Round-robin pairings for a group of 4 (indices into the group's team array).
-const RR_PAIRS: Array<[number, number]> = [
-  [0, 1], [2, 3], // matchday 1
-  [0, 2], [1, 3], // matchday 2
-  [0, 3], [1, 2], // matchday 3
-];
-const RR_ROUND = [1, 1, 2, 2, 3, 3];
-
 const VENUES = [
-  ['MetLife Stadium', 'New York/New Jersey'],
+  ['BC Place', 'Vancouver'],
+  ['Lumen Field', 'Seattle'],
+  ['Levi\'s Stadium', 'San Francisco Bay Area'],
   ['SoFi Stadium', 'Los Angeles'],
+  ['Arrowhead Stadium', 'Kansas City'],
   ['AT&T Stadium', 'Dallas'],
-  ['Mercedes-Benz Stadium', 'Atlanta'],
+  ['NRG Stadium', 'Houston'],
+  ['Estadio BBVA', 'Monterrey'],
+  ['Estadio Akron', 'Guadalajara'],
+  ['Estadio Banorte', 'Mexico City'],
   ['BMO Field', 'Toronto'],
-  ['Estadio Azteca', 'Mexico City'],
+  ['Gillette Stadium', 'Boston'],
+  ['MetLife Stadium', 'New York/New Jersey'],
+  ['Lincoln Financial Field', 'Philadelphia'],
+  ['Mercedes-Benz Stadium', 'Atlanta'],
+  ['Hard Rock Stadium', 'Miami'],
 ];
 
 async function run() {
@@ -60,8 +63,16 @@ async function run() {
     AchievementModel.deleteMany({}),
   ]);
   
-  // Drop users collection to fix corrupted index
-  await UserModel.collection.drop().catch(() => {});
+  // Drop the users collection so any stale index from a previous schema
+  // (e.g. the old sparse-unique googleId index) is cleared on reseed. The model
+  // now declares a partial-filter unique index that Mongoose rebuilds on connect.
+  try {
+    await UserModel.collection.drop();
+  } catch (e) {
+    // Collection might not exist yet — nothing to drop.
+  }
+  await UserModel.createCollection();
+  await UserModel.syncIndexes();
 
   // 1) Teams
   const teams = await TeamModel.insertMany(
@@ -88,70 +99,71 @@ async function run() {
   }
   console.log(`✅ ${groups.length} groups`);
 
-  // 3) Group-stage fixtures (round-robin, 6 per group)
-  // Use relative dates for testing: some past (finished), some recent (live), some future (upcoming)
-  const now = new Date();
-  const oneDayMs = 24 * 60 * 60 * 1000;
+  // 3) Group-stage fixtures using actual World Cup 2026 match results
   const matches: Record<string, unknown>[] = [];
-  let venueIdx = 0;
-  let matchIdx = 0;
-  groups.forEach(({ group, members }) => {
-    RR_PAIRS.forEach(([h, a], i) => {
-      const [venue, city] = VENUES[venueIdx++ % VENUES.length];
-      const round = RR_ROUND[i];
-      
-      // Stagger dates: first 24 matches finished (2-3 days ago), next 24 live (started today), rest upcoming (future)
-      let kickoff: Date;
-      let status: 'scheduled' | 'live' | 'finished';
-      let score: { home: number | null; away: number | null };
-      let minute: number | undefined;
-      
-      if (matchIdx < 24) {
-        // Finished matches (2-3 days ago)
-        kickoff = new Date(now.getTime() - (2 + Math.floor(matchIdx / 12)) * oneDayMs + matchIdx * 2 * 60 * 60 * 1000);
-        status = 'finished';
-        // Random scores for finished matches
-        const homeScore = Math.floor(Math.random() * 4);
-        const awayScore = Math.floor(Math.random() * 4);
-        score = { home: homeScore, away: awayScore };
-        minute = 90;
-      } else if (matchIdx < 48) {
-        // Live matches (started 30-90 mins ago)
-        kickoff = new Date(now.getTime() - (30 + Math.floor((matchIdx - 24) / 8) * 15) * 60 * 1000);
-        status = 'live';
-        const homeScore = Math.floor(Math.random() * 3);
-        const awayScore = Math.floor(Math.random() * 3);
-        score = { home: homeScore, away: awayScore };
-        minute = 30 + Math.floor((matchIdx - 24) / 8) * 15;
-      } else {
-        // Upcoming matches (starting in next few days)
-        kickoff = new Date(now.getTime() + (matchIdx - 48 + 1) * 4 * 60 * 60 * 1000);
-        status = 'scheduled';
-        score = { home: null, away: null };
-      }
-      
-      matches.push({
-        stage: 'group',
-        groupId: group._id,
-        homeTeamId: members[h]._id,
-        awayTeamId: members[a]._id,
-        venue,
-        city,
-        kickoff,
-        status,
-        round,
-        score,
-        minute,
-        events: status !== 'scheduled' ? [
-          ...(score.home && score.home > 0 ? [{ minute: Math.floor(Math.random() * 45) + 1, type: 'goal', teamId: members[h]._id }] : []),
-          ...(score.away && score.away > 0 ? [{ minute: Math.floor(Math.random() * 45) + 46, type: 'goal', teamId: members[a]._id }] : []),
-        ] : [],
-      });
-      matchIdx++;
-    });
+  
+  // Create a map of team name to team ID
+  const teamNameToId = new Map<string, string>();
+  teams.forEach((team) => {
+    teamNameToId.set(team.name, String(team._id));
   });
+  
+  // Map group name to group ID
+  const groupNameToId = new Map<string, string>();
+  groups.forEach(({ group }) => {
+    groupNameToId.set(group.name, String(group._id));
+  });
+  
+  // Insert actual match results
+  for (const match of ACTUAL_MATCH_RESULTS) {
+    const homeTeamId = teamNameToId.get(match.homeTeam);
+    const awayTeamId = teamNameToId.get(match.awayTeam);
+    const groupId = groupNameToId.get(match.group);
+    
+    if (!homeTeamId || !awayTeamId || !groupId) {
+      console.warn(`Skipping match: ${match.homeTeam} vs ${match.awayTeam} - team/group not found`);
+      continue;
+    }
+    
+    const kickoff = new Date(match.date);
+    const score = match.status === 'finished' 
+      ? { home: match.homeScore, away: match.awayScore }
+      : { home: null, away: null };
+    
+    const minute = match.status === 'finished' ? 90 : undefined;
+    
+    // Generate goal events for finished matches
+    const events = match.status === 'finished' && (match.homeScore > 0 || match.awayScore > 0) ? [
+      ...(Array.from({ length: match.homeScore }, (_, i) => ({ 
+        minute: Math.floor(Math.random() * 45) + 1 + (i * 20), 
+        type: 'goal', 
+        teamId: homeTeamId 
+      }))),
+      ...(Array.from({ length: match.awayScore }, (_, i) => ({ 
+        minute: Math.floor(Math.random() * 45) + 46 + (i * 20), 
+        type: 'goal', 
+        teamId: awayTeamId 
+      })))
+    ] : [];
+    
+    matches.push({
+      stage: 'group',
+      groupId,
+      homeTeamId,
+      awayTeamId,
+      venue: match.venue,
+      city: match.city,
+      kickoff,
+      status: match.status,
+      round: 1, // Simplified - actual round info would need to be added
+      score,
+      minute,
+      events,
+    });
+  }
+  
   await MatchModel.insertMany(matches);
-  console.log(`✅ ${matches.length} group fixtures`);
+  console.log(`✅ ${matches.length} group fixtures (actual World Cup 2026 results)`);
 
   // Recompute standings for all groups after seeding matches
   for (const { group } of groups) {
@@ -163,19 +175,31 @@ async function run() {
   // R32(16) → R16(8) → QF(4) → SF(2) → 3rd place(1) + Final(1) = 32 knockout fixtures.
   // Teams are TBD (null) until the group draw resolves — the frontend renders them as "TBD" and
   // real pairings/results arrive via `npm run import:wc`. 72 group + 32 knockout = 104 total.
+  // Actual World Cup 2026 knockout dates (from June 11 start):
+  // R32: June 29-July 2 (dayOffset 18-21)
+  // R16: July 4-7 (dayOffset 23-26)
+  // QF: July 9-10 (dayOffset 28-29)
+  // SF: July 14-15 (dayOffset 33-34)
+  // Third: July 18 (dayOffset 37)
+  // Final: July 19 (dayOffset 38)
+  const tournamentStart = new Date('2026-06-11T13:00:00-05:00');
+  const oneDayMs = 24 * 60 * 60 * 1000;
   const KO_ROUNDS: Array<{ stage: string; count: number; dayOffset: number }> = [
     { stage: 'r32', count: 16, dayOffset: 18 },
-    { stage: 'r16', count: 8, dayOffset: 24 },
+    { stage: 'r16', count: 8, dayOffset: 23 },
     { stage: 'qf', count: 4, dayOffset: 28 },
-    { stage: 'sf', count: 2, dayOffset: 32 },
-    { stage: 'third', count: 1, dayOffset: 35 },
-    { stage: 'final', count: 1, dayOffset: 36 },
+    { stage: 'sf', count: 2, dayOffset: 33 },
+    { stage: 'third', count: 1, dayOffset: 37 },
+    { stage: 'final', count: 1, dayOffset: 38 },
   ];
+  let venueIdx = 0;
   const knockouts: Record<string, unknown>[] = [];
   KO_ROUNDS.forEach(({ stage, count, dayOffset }) => {
     for (let n = 0; n < count; n++) {
       const [venue, city] = VENUES[venueIdx++ % VENUES.length];
-      const kickoff = new Date(baseDate.getTime() + dayOffset * 86_400_000 + n * 4 * 3_600_000);
+      // Spread knockout matches across their respective date ranges
+      const daysIntoRound = Math.floor(n / (count / 4)); // Spread over 4 days per round
+      const kickoff = new Date(tournamentStart.getTime() + (dayOffset + daysIntoRound) * oneDayMs + (n % 4) * 6 * 60 * 60 * 1000);
       knockouts.push({
         stage,
         homeTeamId: null,
@@ -223,6 +247,7 @@ async function run() {
     passwordHash: await hashPassword(adminPassword),
     provider: 'local',
     role: 'admin',
+    googleId: null,
   });
 
   // 7) Test users for login testing
@@ -232,6 +257,7 @@ async function run() {
     passwordHash: await hashPassword('password123'),
     provider: 'local',
     role: 'user',
+    googleId: null,
   });
 
   await UserModel.create({
@@ -240,6 +266,7 @@ async function run() {
     passwordHash: await hashPassword('password123'),
     provider: 'local',
     role: 'user',
+    googleId: null,
   });
 
   console.log(`✅ admin user: ${adminEmail} / ${adminPassword}`);

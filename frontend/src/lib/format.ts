@@ -44,6 +44,19 @@ export function formatDay(iso: string): string {
   });
 }
 
+/**
+ * Live match clock derived from kickoff — the data feed sends no minute. Models a 15-minute
+ * half-time so the second half reads 46'–90'. Returns 'HT' during the break and "90+'" after.
+ */
+export function liveMinuteLabel(kickoffIso: string): string {
+  const elapsed = Math.floor((Date.now() - new Date(kickoffIso).getTime()) / 60000);
+  if (elapsed <= 0) return "1'";
+  if (elapsed <= 45) return `${elapsed}'`;
+  if (elapsed < 60) return 'HT';
+  if (elapsed <= 105) return `${elapsed - 15}'`;
+  return "90+'";
+}
+
 export function formatTime(iso: string): string {
   const d = new Date(iso);
   const now = new Date();

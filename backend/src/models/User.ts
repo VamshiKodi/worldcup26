@@ -18,8 +18,14 @@ const userSchema = new Schema(
   { timestamps: true },
 );
 
-// Sparse unique so multiple local users (googleId: null) don't collide.
-userSchema.index({ googleId: 1 }, { unique: true, sparse: true });
+// Unique among real Google accounts only. `googleId` defaults to null for local
+// users, and a `sparse` index still indexes explicit nulls (it only skips *missing*
+// fields) — so every local user would collide. A partial index keyed on string
+// values excludes all the nulls and enforces uniqueness only where it matters.
+userSchema.index(
+  { googleId: 1 },
+  { unique: true, partialFilterExpression: { googleId: { $type: 'string' } } },
+);
 userSchema.index({ score: -1 });
 
 // Never leak sensitive fields when serialized.

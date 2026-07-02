@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useApi } from '../hooks/useApi';
 import { STAGE_LABEL } from '../lib/format';
 import type {
@@ -16,13 +16,34 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { StatePanel } from '../components/ui/StatePanel';
 
 export default function AiLab() {
-  const { body: matchBody } = useApi<ListResponse<Match>>('/matches', { limit: 100 });
-  const matches = matchBody?.data ?? [];
+  const { body: matchBody, refetch: refetchMatches } = useApi<ListResponse<Match>>('/matches', { limit: 100 });
+  const matches = useMemo(
+    () => (matchBody?.data ?? []).filter((match) => match.homeTeamId && match.awayTeamId),
+    [matchBody],
+  );
   const [matchId, setMatchId] = useState<string>('');
 
-  // Default to the first available match once loaded.
+  // Keep an open lab tab current as knockout pairings are resolved by the live fixture sync.
   useEffect(() => {
-    if (!matchId && matches.length) setMatchId(matches[0]._id);
+    const refresh = () => refetchMatches();
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    const interval = window.setInterval(refresh, 60_000);
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
+  }, [refetchMatches]);
+
+  // Default to an available match and move off a fixture if it becomes unresolved.
+  useEffect(() => {
+    if (matches.length && !matches.some((match) => match._id === matchId)) {
+      setMatchId(matches[0]._id);
+    }
   }, [matches, matchId]);
 
   return (
@@ -82,7 +103,9 @@ function MatchProbability({ matchId }: { matchId: string }) {
 
           <div className="space-y-3">
             <ProbabilityBar tone="primary" label={`${ai.home.code} win`} value={ai.probabilities.home} />
-            <ProbabilityBar tone="secondary" label="Draw" value={ai.probabilities.draw} />
+            {ai.stage === 'group' && (
+              <ProbabilityBar tone="secondary" label="Draw" value={ai.probabilities.draw} />
+            )}
             <ProbabilityBar tone="accent" label={`${ai.away.code} win`} value={ai.probabilities.away} />
           </div>
 

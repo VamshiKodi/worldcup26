@@ -32,6 +32,14 @@ const matchSchema = new Schema(
       home: { type: Number, default: null },
       away: { type: Number, default: null },
     },
+    // Half-time score (real data from football-data.org); null until the first half is played.
+    halfTime: {
+      home: { type: Number, default: null },
+      away: { type: Number, default: null },
+    },
+    referee: { type: String, default: '' }, // main referee name (real data)
+    winner: { type: String, default: null }, // HOME_TEAM | AWAY_TEAM | DRAW (real data)
+    duration: { type: String, default: 'REGULAR' }, // REGULAR | EXTRA_TIME | PENALTY_SHOOTOUT
     minute: { type: Number, default: 0 }, // live match clock, driven by the live engine
     events: { type: [matchEventSchema], default: [] },
     round: { type: Number, default: 1 }, // matchday within group stage

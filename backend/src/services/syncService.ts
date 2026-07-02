@@ -12,6 +12,8 @@ import {
   getScorers,
   isRestricted,
 } from './footballData.js';
+import type { FDMatch } from './footballData.js';
+import { buildFinishedEvents, buildLiveGoal } from './matchEvents.js';
 import {
   confederationOf,
   mapFdStage,
@@ -24,6 +26,36 @@ import {
 import { fifaRankingOf } from './fifaRankings.js';
 
 const HOSTS = new Set(['United States', 'USA', 'Canada', 'Mexico']);
+
+/**
+ * Derive a match clock from kickoff — the free tier never sends a `minute`. Models a 15-minute
+ * half-time break so the second half reads 45'–90' rather than running straight through.
+ */
+function liveMinute(kickoff: Date): number {
+  const elapsed = Math.floor((Date.now() - new Date(kickoff).getTime()) / 60_000);
+  if (elapsed <= 0) return 1;
+  if (elapsed <= 45) return elapsed;
+  if (elapsed <= 60) return 45; // half-time interval
+  if (elapsed <= 105) return elapsed - 15;
+  return 90;
+}
+
+/** Real match details available on the free tier (half-time score, referee, winner, duration). */
+function detailsFrom(f: FDMatch) {
+  return {
+    halfTime: { home: f.score.halfTime?.home ?? null, away: f.score.halfTime?.away ?? null },
+    referee: f.referees?.find((r) => r.type === 'REFEREE')?.name ?? f.referees?.[0]?.name ?? '',
+    winner: f.score.winner ?? null,
+    duration: f.score.duration ?? 'REGULAR',
+  };
+}
+
+/** Resolve a team reference (populated doc or raw id) to its string _id, or null for TBD. */
+function teamObjId(ref: unknown): string | null {
+  if (!ref) return null;
+  if (typeof ref === 'object' && ref !== null && '_id' in ref) return String((ref as { _id: unknown })._id);
+  return String(ref);
+}
 
 /**
  * Full import of real World Cup data from football-data.org into our collections. Idempotent:
@@ -167,6 +199,7 @@ export async function importStaticData(): Promise<{ teams: number; groups: numbe
         status: mapFdStatus(f.status),
         minute: f.minute ?? 0,
         score: { home: f.score.fullTime.home, away: f.score.fullTime.away },
+        ...detailsFrom(f),
         round: f.matchday ?? 1,
         bracketSlot,
       },
@@ -238,15 +271,34 @@ export function startLiveSync(io: SocketServer): () => void {
       const newHome = f.score.fullTime.home ?? prevHome;
       const newAway = f.score.fullTime.away ?? prevAway;
       const newStatus = mapFdStatus(f.status);
-      const minute = f.minute ?? match.minute ?? 0;
+      const finished = newStatus === 'finished';
+      const minute = finished ? match.minute || 90 : liveMinute(match.kickoff);
 
+      const homeId = teamObjId(match.homeTeamId);
+      const awayId = teamObjId(match.awayTeamId);
       const scoredSide = newHome > prevHome ? 'home' : newAway > prevAway ? 'away' : undefined;
 
       match.score = { home: newHome, away: newAway };
       match.minute = minute;
       match.status = newStatus;
+      Object.assign(match, detailsFrom(f));
 
-      const finished = newStatus === 'finished';
+      // Synthesise a scorer for the goal that was just registered (live), so the timeline grows
+      // in real time. `liveEvent` carries the resolved player so the socket tick can show a name.
+      let liveEvent: { minute: number; type: string; teamId: string; playerId: { _id: string; name: string; photoUrl?: string } | null } | undefined;
+      const scoringTeamId = scoredSide === 'home' ? homeId : scoredSide === 'away' ? awayId : null;
+      if (scoringTeamId) {
+        const { event, player } = await buildLiveGoal(scoringTeamId, minute);
+        match.set('events', [...(match.events ?? []), event]);
+        liveEvent = { minute: event.minute, type: event.type, teamId: event.teamId, playerId: player };
+      }
+
+      // At full time, ensure the timeline matches the final scoreline (covers goals that landed
+      // before this sync first observed the match, or while the server was down).
+      if (finished && homeId && awayId && (match.events?.length ?? 0) < newHome + newAway) {
+        match.set('events', await buildFinishedEvents(homeId, awayId, newHome, newAway));
+      }
+
       await match.save();
 
       const matchId = String(match._id);
@@ -254,11 +306,11 @@ export function startLiveSync(io: SocketServer): () => void {
       const home = match.homeTeamId as unknown as { name?: string; code?: string };
       const away = match.awayTeamId as unknown as { name?: string; code?: string };
       const teams = {
-        home: { name: home.name ?? 'Home', code: home.code ?? '?' },
-        away: { name: away.name ?? 'Away', code: away.code ?? '?' },
+        home: { name: home?.name ?? 'Home', code: home?.code ?? '?' },
+        away: { name: away?.name ?? 'Away', code: away?.code ?? '?' },
       };
 
-      io.to(`match:${matchId}`).emit('match:tick', { matchId, minute, score, status: newStatus });
+      io.to(`match:${matchId}`).emit('match:tick', { matchId, minute, score, status: newStatus, event: liveEvent });
       io.to('matches:live').emit('matches:update', { matchId, minute, score, status: newStatus, teams, scoredSide });
 
       if (finished) {
@@ -276,5 +328,124 @@ export function startLiveSync(io: SocketServer): () => void {
   const interval = setInterval(run, Math.max(30_000, env.footballData.livePollMs));
   interval.unref?.();
   console.log('📡 Real-data live sync started (football-data.org)');
+  return () => clearInterval(interval);
+}
+
+/**
+ * Result reconciliation: poll the *full* fixture list (not just in-play) and write back any
+ * match whose real status/score has changed. This is the safety net the live-only poll lacks —
+ * it catches matches that finished while the server was off, or that the delayed free tier never
+ * surfaced as LIVE at the exact poll instant, so finished results always land without a manual
+ * re-import. On a match newly transitioning to finished we settle predictions + recompute
+ * standings and broadcast, exactly like startLiveSync / admin score entry. Returns a stop fn.
+ */
+export function startResultSync(io: SocketServer): () => void {
+  const teamFields = 'name code';
+
+  async function reconcile(): Promise<void> {
+    let res;
+    try {
+      res = await getMatches();
+    } catch (err) {
+      // Restricted/quota errors shouldn't kill the loop — just skip this cycle.
+      if (isRestricted(err)) return;
+      throw err;
+    }
+
+    const teams = await TeamModel.find({ apiId: { $ne: null } }).select('_id apiId').lean();
+    const teamByApiId = new Map<number, string>(
+      teams.map((team) => [team.apiId as number, String(team._id)]),
+    );
+
+    for (const f of res.matches) {
+      const match = await MatchModel.findOne({ apiId: f.id })
+        .populate('homeTeamId', teamFields)
+        .populate('awayTeamId', teamFields);
+      if (!match) continue;
+
+      const homeId = teamByApiId.get(f.homeTeam.id) ?? null;
+      const awayId = teamByApiId.get(f.awayTeam.id) ?? null;
+      const kickoff = new Date(f.utcDate);
+      const scheduleChanged =
+        teamObjId(match.homeTeamId) !== homeId ||
+        teamObjId(match.awayTeamId) !== awayId ||
+        match.kickoff.getTime() !== kickoff.getTime() ||
+        match.venue !== (f.venue ?? '');
+
+      if (scheduleChanged) {
+        match.set('homeTeamId', homeId);
+        match.set('awayTeamId', awayId);
+        match.kickoff = kickoff;
+        match.venue = f.venue ?? '';
+      }
+
+      // A finished result is terminal: never revert it (the free tier can momentarily flap a
+      // completed fixture back to TIMED) and never re-settle it. We do still backfill a simulated
+      // timeline once for finished matches missing one (imported before this feature, or that
+      // completed while the server was down), then move on.
+      if (match.status === 'finished') {
+        if ((match.events?.length ?? 0) === 0 && homeId && awayId && match.score?.home != null) {
+          Object.assign(match, detailsFrom(f));
+          match.set('events', await buildFinishedEvents(homeId, awayId, match.score.home, match.score.away ?? 0));
+          await match.save();
+        } else if (scheduleChanged) {
+          await match.save();
+        }
+        continue;
+      }
+
+      const prevHome = match.score?.home ?? null;
+      const prevAway = match.score?.away ?? null;
+      const newHome = f.score.fullTime.home ?? prevHome;
+      const newAway = f.score.fullTime.away ?? prevAway;
+      const newStatus = mapFdStatus(f.status);
+      const minute =
+        newStatus === 'live' ? liveMinute(match.kickoff) : newStatus === 'finished' ? match.minute || 90 : 0;
+
+      // Nothing changed since our last sync — leave the row (and predictions) untouched.
+      if (match.status === newStatus && prevHome === newHome && prevAway === newAway) {
+        if (scheduleChanged) await match.save();
+        continue;
+      }
+
+      match.score = { home: newHome, away: newAway };
+      match.minute = minute;
+      match.status = newStatus;
+      Object.assign(match, detailsFrom(f));
+      if (newStatus === 'finished' && homeId && awayId && (match.events?.length ?? 0) === 0) {
+        match.set('events', await buildFinishedEvents(homeId, awayId, newHome ?? 0, newAway ?? 0));
+      }
+      await match.save();
+
+      const matchId = String(match._id);
+      const score = { home: newHome, away: newAway };
+      const home = match.homeTeamId as unknown as { name?: string; code?: string };
+      const away = match.awayTeamId as unknown as { name?: string; code?: string };
+      const teams = {
+        home: { name: home?.name ?? 'Home', code: home?.code ?? '?' },
+        away: { name: away?.name ?? 'Away', code: away?.code ?? '?' },
+      };
+
+      io.to(`match:${matchId}`).emit('match:tick', { matchId, minute, score, status: newStatus });
+      io.to('matches:live').emit('matches:update', { matchId, minute, score, status: newStatus, teams });
+
+      // Settle exactly once, on the scheduled/live → finished transition (finished rows are
+      // skipped above, so reaching here with 'finished' is always a fresh completion).
+      if (newStatus === 'finished') {
+        if (match.groupId) await recomputeGroupStandings(String(match.groupId));
+        const { settled } = await settleMatch(matchId);
+        referenceCache.clear();
+        io.to(`match:${matchId}`).emit('match:final', { matchId, score, settled });
+        io.to('matches:live').emit('matches:update', { matchId, minute, score, status: 'finished', teams });
+        console.log(`✅ Result synced: ${teams.home.code} ${newHome}-${newAway} ${teams.away.code} (settled ${settled})`);
+      }
+    }
+  }
+
+  const run = () => reconcile().catch((err) => console.error('[resultSync] reconcile error:', err));
+  run(); // immediate first pass — flips any already-finished-but-stuck fixtures on startup
+  const interval = setInterval(run, Math.max(60_000, env.footballData.resultPollMs));
+  interval.unref?.();
+  console.log('🔁 Real-data result reconciliation started (football-data.org)');
   return () => clearInterval(interval);
 }

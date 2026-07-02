@@ -1,27 +1,61 @@
 /**
- * Team-strength model shared by the AI lab and the Monte-Carlo simulator.
- * Ratings are Elo-like, derived from FIFA ranking and recent form.
+ * Team-strength model shared by the AI lab and Monte-Carlo simulator.
+ * FIFA ranking is the stable prior; recent form and results provide bounded adjustments.
  */
 
-const HOME_ADVANTAGE = 55; // most 2026 matches are neutral; applied only to the listed "home" side
+/** Host-country crowd/travel edge. Merely being listed first gives no World Cup advantage. */
+export const HOST_ADVANTAGE = 35;
+
+const RANK_POINTS = 5;
+const POINTS_PER_GAME_WEIGHT = 100;
+const GOAL_DIFFERENCE_WEIGHT = 50;
+const BASE_GOALS = 1.2;
+const RATING_GOAL_SCALE = 650;
+const DRAW_CALIBRATION = 1.45;
 
 export interface TeamLike {
   fifaRanking?: number | null;
   form?: string[];
+  isHost?: boolean | null;
+  stats?: {
+    played?: number | null;
+    won?: number | null;
+    draw?: number | null;
+    lost?: number | null;
+    gf?: number | null;
+    ga?: number | null;
+  } | null;
 }
 
-/** Convert a FIFA ranking position (1 = best) + form into an Elo-style rating. */
+/** Convert ranking, recency-weighted form, and results into an Elo-style rating. */
 export function ratingOf(team: TeamLike): number {
   const rank = team.fifaRanking && team.fifaRanking > 0 ? team.fifaRanking : 100;
-  // Rank 1 ≈ 1600, rank 16 ≈ 1160, rank 64 ≈ 940 — diminishing penalty for lower ranks.
-  let rating = 1600 - Math.log2(rank) * 110;
-  for (const r of (team.form ?? []).slice(-5)) {
-    rating += r === 'W' ? 15 : r === 'D' ? 4 : r === 'L' ? -12 : 0;
+  let rating = 2050 - RANK_POINTS * Math.min(rank, 150);
+
+  const form = (team.form ?? []).slice(-8);
+  for (let i = 0; i < form.length; i += 1) {
+    const weight = 0.55 + (0.45 * (i + 1)) / Math.max(1, form.length);
+    rating += (form[i] === 'W' ? 18 : form[i] === 'D' ? 2 : form[i] === 'L' ? -16 : 0) * weight;
   }
+
+  const stats = team.stats;
+  const played = Math.max(0, stats?.played ?? 0);
+  if (played > 0) {
+    // Shrink small samples toward average so a single result cannot dominate.
+    const sampleWeight = Math.min(1, played / 10);
+    const pointsPerGame = ((stats?.won ?? 0) * 3 + (stats?.draw ?? 0)) / played;
+    const goalDifferencePerGame = ((stats?.gf ?? 0) - (stats?.ga ?? 0)) / played;
+    const boundedGoalDifference = Math.max(-2, Math.min(2, goalDifferencePerGame));
+    rating +=
+      sampleWeight *
+      ((pointsPerGame - 1.35) * POINTS_PER_GAME_WEIGHT +
+        boundedGoalDifference * GOAL_DIFFERENCE_WEIGHT);
+  }
+
   return rating;
 }
 
-/** Logistic win expectancy of A over B (0..1). */
+/** Logistic no-draw expectancy of A over B. */
 export function expectedScore(ratingA: number, ratingB: number): number {
   return 1 / (1 + Math.pow(10, (ratingB - ratingA) / 400));
 }
@@ -33,18 +67,49 @@ export interface Probabilities {
 }
 
 /**
- * 1X2 probabilities for a single match. The draw share shrinks as the rating
- * gap widens; home advantage is omitted for neutral-venue (knockout) ties.
+ * Derive 1X2 probabilities from two Poisson goal distributions.
+ * `advantage` is an Elo-point adjustment, normally zero or +/- HOST_ADVANTAGE.
  */
-export function matchProbabilities(ratingHome: number, ratingAway: number, neutral = false): Probabilities {
-  const adv = neutral ? 0 : HOME_ADVANTAGE;
-  const eHome = expectedScore(ratingHome + adv, ratingAway);
-  const gap = Math.abs(ratingHome + adv - ratingAway);
-  const draw = Math.max(0.08, 0.3 - gap / 1600);
-  const home = eHome * (1 - draw);
-  const away = (1 - eHome) * (1 - draw);
-  const sum = home + draw + away;
-  return { home: home / sum, draw: draw / sum, away: away / sum };
+export function matchProbabilities(
+  ratingHome: number,
+  ratingAway: number,
+  advantage = 0,
+  allowDraw = true,
+): Probabilities {
+  const xg = expectedGoals(ratingHome, ratingAway, advantage);
+  const homeGoals = poissonDistribution(xg.home);
+  const awayGoals = poissonDistribution(xg.away);
+  let home = 0;
+  let draw = 0;
+  let away = 0;
+
+  for (let h = 0; h < homeGoals.length; h += 1) {
+    for (let a = 0; a < awayGoals.length; a += 1) {
+      const probability = homeGoals[h] * awayGoals[a];
+      if (h > a) home += probability;
+      else if (h === a) draw += probability;
+      else away += probability;
+    }
+  }
+
+  const calibratedDraw = draw * DRAW_CALIBRATION;
+  const sum = home + calibratedDraw + away;
+  const probabilities = {
+    home: home / sum,
+    draw: calibratedDraw / sum,
+    away: away / sum,
+  };
+
+  if (!allowDraw) {
+    const decisive = probabilities.home + probabilities.away;
+    return {
+      home: probabilities.home / decisive,
+      draw: 0,
+      away: probabilities.away / decisive,
+    };
+  }
+
+  return probabilities;
 }
 
 /** Knockout (no-draw) win probability of A over B at a neutral venue. */
@@ -52,11 +117,22 @@ export function winProbability(ratingA: number, ratingB: number): number {
   return expectedScore(ratingA, ratingB);
 }
 
-/** Expected goals for each side, from rating gap. Used for a "likely scoreline" hint. */
-export function expectedGoals(ratingHome: number, ratingAway: number, neutral = false): { home: number; away: number } {
-  const adv = neutral ? 0 : HOME_ADVANTAGE;
-  const diff = ratingHome + adv - ratingAway;
-  const home = Math.max(0.2, 1.35 + diff / 250);
-  const away = Math.max(0.2, 1.35 - diff / 250);
+/** Expected goals for each side from the bounded rating gap. */
+export function expectedGoals(
+  ratingHome: number,
+  ratingAway: number,
+  advantage = 0,
+): { home: number; away: number } {
+  const difference = Math.max(-500, Math.min(500, ratingHome + advantage - ratingAway));
+  const home = Math.max(0.18, Math.min(4.2, BASE_GOALS * Math.exp(difference / RATING_GOAL_SCALE)));
+  const away = Math.max(0.18, Math.min(4.2, BASE_GOALS * Math.exp(-difference / RATING_GOAL_SCALE)));
   return { home, away };
+}
+
+function poissonDistribution(lambda: number, maxGoals = 10): number[] {
+  const probabilities = [Math.exp(-lambda)];
+  for (let goals = 1; goals <= maxGoals; goals += 1) {
+    probabilities.push((probabilities[goals - 1] * lambda) / goals);
+  }
+  return probabilities;
 }

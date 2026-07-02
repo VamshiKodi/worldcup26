@@ -19,10 +19,14 @@ export async function listMatches(req: Request, res: Response) {
     if (to) (filter.kickoff as Record<string, Date>).$lte = new Date(to);
   }
 
+  // Finished results read newest-first (latest scores on top); upcoming/live/all read
+  // chronologically (soonest next match first).
+  const sortDir = status === 'finished' ? -1 : 1;
+
   const teamFields = 'name code flagUrl';
   const [data, total] = await Promise.all([
     MatchModel.find(filter)
-      .sort({ kickoff: 1 })
+      .sort({ kickoff: sortDir })
       .skip((p - 1) * l)
       .limit(l)
       .populate('homeTeamId', teamFields)

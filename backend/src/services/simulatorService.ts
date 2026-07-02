@@ -1,5 +1,5 @@
 import { GroupModel } from '../models/index.js';
-import { ratingOf, matchProbabilities, winProbability, type TeamLike } from './strength.js';
+import { HOST_ADVANTAGE, ratingOf, matchProbabilities, winProbability, type TeamLike } from './strength.js';
 
 interface SimTeam {
   id: string;
@@ -7,6 +7,7 @@ interface SimTeam {
   code: string;
   flagUrl: string;
   rating: number;
+  isHost: boolean;
 }
 
 interface PopulatedTeam extends TeamLike {
@@ -37,7 +38,8 @@ const ROUND_ROBIN: Array<[number, number]> = [
 function simulateGroup(teams: SimTeam[]): { order: number[]; points: number[] } {
   const points = teams.map(() => 0);
   for (const [i, j] of ROUND_ROBIN) {
-    const p = matchProbabilities(teams[i].rating, teams[j].rating, true);
+    const advantage = teams[i].isHost ? HOST_ADVANTAGE : teams[j].isHost ? -HOST_ADVANTAGE : 0;
+    const p = matchProbabilities(teams[i].rating, teams[j].rating, advantage);
     const r = Math.random();
     if (r < p.home) points[i] += 3;
     else if (r < p.home + p.draw) {
@@ -53,7 +55,8 @@ function simulateGroup(teams: SimTeam[]): { order: number[]; points: number[] } 
 
 /** Single knockout tie at a neutral venue; returns the winner. */
 function knockout(a: SimTeam, b: SimTeam): SimTeam {
-  return Math.random() < winProbability(a.rating, b.rating) ? a : b;
+  const advantage = a.isHost ? HOST_ADVANTAGE : b.isHost ? -HOST_ADVANTAGE : 0;
+  return Math.random() < winProbability(a.rating + advantage, b.rating) ? a : b;
 }
 
 /**
@@ -62,7 +65,9 @@ function knockout(a: SimTeam, b: SimTeam): SimTeam {
  * each stage, averaged over `runs`.
  */
 export async function simulateTournament(runs: number) {
-  const groups = await GroupModel.find().populate('teamIds', 'name code flagUrl fifaRanking form').lean();
+  const groups = await GroupModel.find()
+    .populate('teamIds', 'name code flagUrl fifaRanking form isHost stats')
+    .lean();
 
   // Build immutable per-team strength records once.
   const groupTeams: SimTeam[][] = groups
@@ -73,6 +78,7 @@ export async function simulateTournament(runs: number) {
         code: t.code,
         flagUrl: t.flagUrl ?? '',
         rating: ratingOf(t),
+        isHost: Boolean(t.isHost),
       })),
     )
     .filter((g) => g.length === 4);

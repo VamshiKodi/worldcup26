@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useApi } from '../hooks/useApi';
 import { useMatchLive } from '../hooks/useMatchLive';
 import { usePredictions } from '../store/predictionSlice';
 import { useAuth } from '../store/authSlice';
-import { STAGE_LABEL, formatKickoff } from '../lib/format';
+import { STAGE_LABEL, formatKickoff, liveMinuteLabel } from '../lib/format';
 import type { ItemResponse, Match, MatchEvent, TeamRef } from '../lib/types';
 import { Flag } from '../components/ui/Flag';
 import { PlayerAvatar } from '../components/ui/PlayerAvatar';
@@ -78,6 +78,24 @@ function MatchDetailBody({
   const live = status === 'live';
   const played = live || status === 'finished';
 
+  // The feed sends no minute, so tick a kickoff-derived clock locally while the match is live.
+  const [liveLabel, setLiveLabel] = useState(() => liveMinuteLabel(match.kickoff));
+  useEffect(() => {
+    if (!live) return;
+    setLiveLabel(liveMinuteLabel(match.kickoff));
+    const t = setInterval(() => setLiveLabel(liveMinuteLabel(match.kickoff)), 15000);
+    return () => clearInterval(t);
+  }, [live, match.kickoff]);
+
+  const hasHalfTime =
+    played && match.halfTime != null && match.halfTime.home != null && match.halfTime.away != null;
+  const durationNote =
+    match.duration === 'PENALTY_SHOOTOUT'
+      ? 'After penalties'
+      : match.duration === 'EXTRA_TIME'
+        ? 'After extra time'
+        : null;
+
   // The user's stored pick for this match, if any (Phase 6 predictions).
   const isAuthed = useAuth((s) => s.status === 'authed');
   const pick = usePredictions((s) => s.matchPicks[match._id]);
@@ -116,7 +134,7 @@ function MatchDetailBody({
 
         <div className="shrink-0 text-center">
           {live ? (
-            <Badge tone="live" className="mb-2">● {minute}'</Badge>
+            <Badge tone="live" className="mb-2">● {liveLabel}</Badge>
           ) : status === 'finished' ? (
             <Badge tone="muted" className="mb-2">Full time</Badge>
           ) : (
@@ -133,6 +151,12 @@ function MatchDetailBody({
               <span className="text-white/30">vs</span>
             )}
           </div>
+          {hasHalfTime && (
+            <div className="mt-1 text-[11px] uppercase tracking-wide text-white/35">
+              HT {match.halfTime!.home}–{match.halfTime!.away}
+            </div>
+          )}
+          {durationNote && <div className="mt-1 text-xs text-amber-300/80">{durationNote}</div>}
           {verdict && <div className="mt-2 text-xs text-white/50">{verdict}</div>}
         </div>
 
@@ -218,6 +242,7 @@ function MatchInfo({ match, groupName }: { match: Match; groupName: string | nul
   if (groupName) rows.push({ label: 'Group', value: `Group ${groupName}` });
   if (match.stage === 'group' && match.round) rows.push({ label: 'Matchday', value: String(match.round) });
   if (match.venue) rows.push({ label: 'Venue', value: match.venue });
+  if (match.referee) rows.push({ label: 'Referee', value: match.referee });
 
   return (
     <GlassCard>

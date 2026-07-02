@@ -39,6 +39,7 @@ export const env = {
     baseUrl: process.env.FOOTBALL_DATA_URL ?? 'https://api.football-data.org/v4',
     competition: process.env.FOOTBALL_DATA_COMPETITION ?? 'WC', // World Cup
     livePollMs: Number(process.env.FOOTBALL_DATA_POLL_MS ?? 60_000), // live sync cadence (≥30s enforced)
+    resultPollMs: Number(process.env.FOOTBALL_DATA_RESULT_POLL_MS ?? 300_000), // finished-result reconcile cadence (≥60s enforced)
   },
 } as const;
 

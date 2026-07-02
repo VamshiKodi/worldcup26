@@ -4,10 +4,11 @@ import {
   ratingOf,
   matchProbabilities,
   expectedGoals,
+  HOST_ADVANTAGE,
   type TeamLike,
 } from './strength.js';
 
-const TEAM_FIELDS = 'name code flagUrl fifaRanking form';
+const TEAM_FIELDS = 'name code flagUrl fifaRanking form isHost stats';
 
 interface PopulatedTeam extends TeamLike {
   _id: unknown;
@@ -46,11 +47,13 @@ export async function predictMatch(matchId: string) {
   const away = match.awayTeamId as unknown as PopulatedTeam;
   if (!home || !away) throw new ApiError(409, 'MATCH_INCOMPLETE', 'Match is missing teams');
 
-  const neutral = match.stage !== 'group';
+  // World Cup venues are neutral; only an actual host nation gets a modest edge.
+  const neutral = true;
   const rHome = ratingOf(home);
   const rAway = ratingOf(away);
-  const probs = matchProbabilities(rHome, rAway, neutral);
-  const xg = expectedGoals(rHome, rAway, neutral);
+  const advantage = home.isHost ? HOST_ADVANTAGE : away.isHost ? -HOST_ADVANTAGE : 0;
+  const probs = matchProbabilities(rHome, rAway, advantage, match.stage === 'group');
+  const xg = expectedGoals(rHome, rAway, advantage);
 
   return {
     matchId: String(match._id),

@@ -84,6 +84,12 @@ export function getStandings(): Promise<{ standings: FDStandingTable[] }> {
 
 // ── Matches ───────────────────────────────────────────────────────────────────
 
+export interface FDReferee {
+  id: number;
+  name: string;
+  type: string; // 'REFEREE' | 'ASSISTANT_REFEREE_N1' | …
+  nationality: string | null;
+}
 export interface FDMatch {
   id: number;
   utcDate: string;
@@ -91,11 +97,17 @@ export interface FDMatch {
   stage: string; // GROUP_STAGE | LAST_16 | …
   group: string | null; // 'GROUP_A'
   matchday: number | null;
-  minute?: number | null;
+  minute?: number | null; // not provided on the free tier (always absent) — we derive it from kickoff
   venue?: string | null;
   homeTeam: FDTeamRef;
   awayTeam: FDTeamRef;
-  score: { fullTime: { home: number | null; away: number | null } };
+  referees?: FDReferee[];
+  score: {
+    winner?: string | null; // HOME_TEAM | AWAY_TEAM | DRAW
+    duration?: string; // REGULAR | EXTRA_TIME | PENALTY_SHOOTOUT
+    fullTime: { home: number | null; away: number | null };
+    halfTime?: { home: number | null; away: number | null };
+  };
 }
 export function getMatches(): Promise<{ matches: FDMatch[] }> {
   return fd(`competitions/${COMP}/matches`);

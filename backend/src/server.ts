@@ -14,6 +14,7 @@ import {
   importStaticData,
   importScorers,
 } from './services/syncService.js';
+import { enrichMissingPhotos } from './services/photoService.js';
 
 async function bootstrap() {
   await connectDB();
@@ -48,6 +49,14 @@ async function bootstrap() {
     } catch (err) {
       console.error('⚠️  Boot import failed — continuing with existing data:', err);
     }
+    // Backfill missing player headshots (Wikipedia) in the background so the production DB gets
+    // real photos without a manual script run. Only players lacking a photo are resolved, so this
+    // is cheap on subsequent boots. Non-blocking — the server is already serving requests.
+    void enrichMissingPhotos()
+      .then(({ scanned, filled }) => {
+        if (scanned > 0) console.log(`🖼️  Player photos: filled ${filled}/${scanned}`);
+      })
+      .catch((err) => console.error('⚠️  Photo enrichment failed:', err));
     stops.push(startLiveSync(io), startResultSync(io), startStaticSync());
   } else if (env.live.enabled) {
     stops.push(startLiveEngine(io));

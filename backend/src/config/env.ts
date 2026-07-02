@@ -40,6 +40,7 @@ export const env = {
     competition: process.env.FOOTBALL_DATA_COMPETITION ?? 'WC', // World Cup
     livePollMs: Number(process.env.FOOTBALL_DATA_POLL_MS ?? 60_000), // live sync cadence (≥30s enforced)
     resultPollMs: Number(process.env.FOOTBALL_DATA_RESULT_POLL_MS ?? 300_000), // finished-result reconcile cadence (≥60s enforced)
+    staticPollMs: Number(process.env.FOOTBALL_DATA_STATIC_POLL_MS ?? 600_000), // teams/standings/scorers refresh cadence (≥120s enforced)
   },
 } as const;
 

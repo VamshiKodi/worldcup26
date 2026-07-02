@@ -449,3 +449,31 @@ export function startResultSync(io: SocketServer): () => void {
   console.log('🔁 Real-data result reconciliation started (football-data.org)');
   return () => clearInterval(interval);
 }
+
+/**
+ * Static-data refresh: the live/result loops above only touch match scores, so top scorers,
+ * team form/stats, standings and newly-drawn knockout teams would otherwise go stale until a
+ * manual re-import. This loop periodically re-runs the idempotent static import + scorers import
+ * so the golden-boot race and group tables stay current with zero manual steps. Restricted/quota
+ * errors are swallowed so one bad cycle never kills the loop. Returns a stop fn.
+ */
+export function startStaticSync(): () => void {
+  async function refresh(): Promise<void> {
+    try {
+      const { teams, groups, matches } = await importStaticData();
+      const { players } = await importScorers();
+      console.log(
+        `♻️  Static refresh: ${teams} teams · ${groups} groups · ${matches} fixtures · ${players} scorers`,
+      );
+    } catch (err) {
+      if (isRestricted(err)) return; // quota / plan limit — try again next cycle
+      console.error('[staticSync] refresh error:', err);
+    }
+  }
+
+  // No immediate pass here — the caller imports once on boot; this only handles ongoing refresh.
+  const interval = setInterval(() => void refresh(), Math.max(120_000, env.footballData.staticPollMs));
+  interval.unref?.();
+  console.log('♻️  Real-data static refresh started (teams/standings/scorers)');
+  return () => clearInterval(interval);
+}

@@ -1,0 +1,21 @@
+# Netlify deploy config for the WorldCup26 frontend (React + Vite SPA).
+# The backend (Express + Socket.IO + real-data sync) runs separately on Render — see render.yaml.
+#
+# Set these in Netlify → Site settings → Environment variables (they point at the Render backend):
+#   VITE_API_URL     = https://<your-render-service>.onrender.com/api/v1
+#   VITE_SOCKET_URL  = https://<your-render-service>.onrender.com
+#   VITE_GOOGLE_CLIENT_ID = (optional) your Google OAuth client id
+
+[build]
+  base = "frontend"          # build from the frontend/ package
+  command = "npm run build"  # tsc -b && vite build
+  publish = "dist"           # relative to base → frontend/dist
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback: every non-file route serves index.html so React Router owns client-side routing.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -1,11 +1,14 @@
 # Render blueprint for the WorldCup26 API (backend).
-# Frontend deploys to Vercel (see frontend/vercel.json + docs/DEPLOYMENT.md).
+# Frontend deploys to Netlify (see netlify.toml) — set CLIENT_URL below to the Netlify origin.
+# Note: the `free` plan sleeps after ~15 min idle and cold-starts (~30s) on the next request;
+# the real-data auto-update loops pause while asleep and resume on wake. Bump to `starter` for
+# an always-on instance.
 services:
   - type: web
     name: worldcup26-api
     runtime: node
     region: oregon
-    plan: starter
+    plan: free
     rootDir: backend
     buildCommand: npm ci && npm run build
     startCommand: npm run start
@@ -32,4 +35,8 @@ services:
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      # Real World Cup data (football-data.org). Set this to enable real fixtures/scores/scorers
+      # + the auto-update loops in production. Paste your token in the Render dashboard.
+      - key: FOOTBALL_DATA_TOKEN
         sync: false

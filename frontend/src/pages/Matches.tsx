@@ -114,8 +114,8 @@ function MatchRow({ match }: { match: Match }) {
   const tbd = !home || !away;
 
   return (
-    <Link to={`/matches/${match._id}`} className="glass flex items-center gap-4 px-5 py-4 transition hover:border-primary/40">
-      <div className="w-28 shrink-0 text-xs text-white/40">
+    <Link to={`/matches/${match._id}`} className="glass flex items-center gap-2 px-3 py-4 transition hover:border-primary/40 sm:gap-4 sm:px-5">
+      <div className="w-16 shrink-0 text-xs text-white/40 sm:w-28">
         {played ? (
           <Badge tone={status === 'live' ? 'live' : 'muted'}>
             {status === 'live' ? `● ${minute ? `${minute}'` : 'LIVE'}` : 'FT'}
@@ -134,12 +134,12 @@ function MatchRow({ match }: { match: Match }) {
         </div>
       ) : (
         <>
-          <div className="flex flex-1 items-center justify-end gap-3 text-right">
-            <span className="font-medium">{home?.name}</span>
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-2 text-right sm:gap-3">
+            <span className="truncate font-medium">{home?.name}</span>
             <Flag code={home?.code ?? '?'} flagUrl={home?.flagUrl} size={26} />
           </div>
 
-          <div className="w-16 shrink-0 text-center font-display text-lg">
+          <div className="w-12 shrink-0 text-center font-display text-lg sm:w-16">
             {played && score.home != null ? (
               <span>
                 {score.home}<span className="px-1 text-white/30">:</span>{score.away}
@@ -149,9 +149,9 @@ function MatchRow({ match }: { match: Match }) {
             )}
           </div>
 
-          <div className="flex flex-1 items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <Flag code={away?.code ?? '?'} flagUrl={away?.flagUrl} size={26} />
-            <span className="font-medium">{away?.name}</span>
+            <span className="truncate font-medium">{away?.name}</span>
           </div>
         </>
       )}

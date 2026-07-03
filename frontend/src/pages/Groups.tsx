@@ -121,8 +121,8 @@ function FormIndicator({ form }: { form?: string[] }) {
     return <span className="text-white/20">-</span>;
   }
   return (
-    <div className="flex gap-1">
-      {form.map((result, i) => (
+    <div className="flex justify-center gap-1">
+      {form.slice(-5).map((result, i) => (
         <span
           key={i}
           className={`h-2 w-2 rounded-full ${

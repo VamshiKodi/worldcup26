@@ -92,22 +92,22 @@ function MatchEditor({ match, onSaved }: { match: Match; onSaved: () => void }) 
   };
 
   return (
-    <GlassCard className="flex flex-wrap items-center gap-3">
+    <GlassCard className="flex flex-wrap items-center gap-2 sm:gap-3">
       <div className="flex min-w-[3rem] items-center text-xs text-white/40">{STAGE_LABEL[match.stage]}</div>
-      <div className="flex flex-1 items-center justify-end gap-2 text-right">
-        <span className="text-sm">{match.homeTeamId?.name ?? 'TBD'}</span>
+      <div className="flex min-w-0 flex-1 items-center justify-end gap-2 text-right">
+        <span className="truncate text-sm">{match.homeTeamId?.name ?? 'TBD'}</span>
         <Flag code={match.homeTeamId?.code ?? '?'} flagUrl={match.homeTeamId?.flagUrl} size={22} />
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         <input className={`${inputCls} w-12 text-center`} inputMode="numeric" value={home} onChange={(e) => setHome(e.target.value.replace(/\D/g, '').slice(0, 2))} />
         <span className="text-white/30">:</span>
         <input className={`${inputCls} w-12 text-center`} inputMode="numeric" value={away} onChange={(e) => setAway(e.target.value.replace(/\D/g, '').slice(0, 2))} />
       </div>
-      <div className="flex flex-1 items-center gap-2">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <Flag code={match.awayTeamId?.code ?? '?'} flagUrl={match.awayTeamId?.flagUrl} size={22} />
-        <span className="text-sm">{match.awayTeamId?.name ?? 'TBD'}</span>
+        <span className="truncate text-sm">{match.awayTeamId?.name ?? 'TBD'}</span>
       </div>
-      <select className={`${inputCls} w-32`} value={status} onChange={(e) => setStatus(e.target.value as MatchStatus)}>
+      <select className={`${inputCls} w-full sm:w-32`} value={status} onChange={(e) => setStatus(e.target.value as MatchStatus)}>
         {STATUSES.map((s) => (
           <option key={s} value={s}>{s}</option>
         ))}

@@ -127,7 +127,7 @@ function MatchProbability({ matchId }: { matchId: string }) {
 
 function TeamHead({ card, align }: { card: AiMatchPrediction['home']; align: 'left' | 'right' }) {
   return (
-    <div className={`flex flex-col items-${align === 'left' ? 'start' : 'end'} gap-2`}>
+    <div className={`flex flex-col gap-2 ${align === 'left' ? 'items-start' : 'items-end'}`}>
       <Flag code={card.code} flagUrl={card.flagUrl} size={44} />
       <span className="text-sm font-semibold">{card.code}</span>
     </div>

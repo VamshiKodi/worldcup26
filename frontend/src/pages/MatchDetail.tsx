@@ -247,7 +247,7 @@ function MatchInfo({ match, groupName }: { match: Match; groupName: string | nul
   return (
     <GlassCard>
       <div className="mb-3 text-xs uppercase tracking-wide text-white/40">Match info</div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
         {rows.map((r) => (
           <div key={r.label} className="flex justify-between gap-3 border-b border-white/5 pb-1">
             <dt className="text-white/40">{r.label}</dt>

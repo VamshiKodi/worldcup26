@@ -78,7 +78,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
-          className="font-display text-5xl font-bold leading-[1.05] sm:text-7xl"
+          className="font-display text-4xl font-bold leading-[1.05] sm:text-6xl md:text-7xl"
         >
           PREDICT THE <span className="text-gradient">ROAD TO GLORY</span>
         </motion.h1>

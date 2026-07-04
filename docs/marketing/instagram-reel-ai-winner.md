@@ -56,6 +56,42 @@ Pacing: ~26 seconds at a natural pace. Trim to fit your fastest clean read.
 
 ---
 
+## AI avatar narration (a digital "you" reads the script)
+
+Goal: a photorealistic avatar of yourself narrates the reel, overlaid on the real app footage so it still reads as *live AI*, not a fake.
+
+### Pick a tool
+| Tool | Best for | How your avatar is made |
+|------|----------|-------------------------|
+| **HeyGen** (Avatar IV / Instant Avatar) | Most realistic digital twin of you | Upload ~2 min of you talking to a webcam → builds your avatar. Paste script, pick your cloned voice, export 9:16. |
+| **Captions** (iOS/Android app) | Fastest, mobile-first, made for reels | Record a short clip → generates you reading any script. Vertical + captions built in. |
+| **Argil / Arcads** | UGC-style, many hook variations | Clone look + voice, spin A/B variants of the hook. |
+| **D-ID / Hedra** | Talking head from a single photo | Lowest effort, least "real" — use if you don't want to film yourself. |
+
+Recommendation: **HeyGen** for a genuine likeness, **Captions** if you want it done tonight on your phone.
+
+### Give it your voice
+Clone your voice so it isn't generic TTS:
+- **ElevenLabs** — upload 1–3 min of clean audio, export the MP3, feed it to the avatar tool as the audio track. Or
+- Use **HeyGen/Captions' built-in voice cloning** (one step).
+
+### Avatar-friendly script (shorter sentences = cleaner lip-sync)
+Feed this version — trimmed into punchy lines the avatar can land on the beat:
+> "I built an AI to predict the 2026 World Cup.
+> It grades every match. It rates every team's title odds.
+> Then I made it simulate the whole tournament — a thousand times.
+> One team won the most: **[TEAM]**, at **[XX]%**.
+> This is its full road to the final.
+> Want to run your own? Link in bio."
+
+### Combine avatar + screen recordings (in CapCut)
+1. Generate the avatar on a **green screen / transparent background** (HeyGen + Captions both support this).
+2. App screen-recordings = **base layer**; drop the green-screen avatar in as **picture-in-picture**.
+3. **Full-frame the avatar** for the hook (0–2.5s) and the CTA (last 3s); **shrink it to a corner bubble** (bottom-left, above the bottom safe zone) while app footage plays through the middle (shots 2–8).
+4. Keep the mute-safe captions from the storyboard table — most viewers watch on mute even with the avatar talking.
+
+---
+
 ## Audio
 Instagram **rewards in-app 'trending' audio** (better reach) — pick from the app, don't import an MP3 if you can avoid it.
 - In the Reels editor, tap 🎵 and sort audio by **"Trending" ↑ arrow**.

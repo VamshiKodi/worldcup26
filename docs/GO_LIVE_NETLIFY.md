@@ -1,5 +1,8 @@
 # Go live: Netlify (frontend) + Render (backend) + MongoDB Atlas (database)
 
+> **Live site:** https://fifaworldcup26predictor.netlify.app/
+> **Backend API:** https://worldcup26-api.onrender.com (health: `/api/v1/health`)
+
 The app has two halves. The React/Vite **frontend** is static → **Netlify**. The Express +
 Socket.IO + real-data-sync **backend** is a long-running server → **Render** (Netlify can't host
 it). The database moves from local MongoDB → **MongoDB Atlas**. All three have free tiers.

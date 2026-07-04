@@ -135,7 +135,10 @@ function MatchRow({ match }: { match: Match }) {
       ) : (
         <>
           <div className="flex min-w-0 flex-1 items-center justify-end gap-2 text-right sm:gap-3">
-            <span className="truncate font-medium">{home?.name}</span>
+            <span className="truncate font-medium">
+              <span className="sm:hidden">{home?.code ?? home?.name}</span>
+              <span className="hidden sm:inline">{home?.name}</span>
+            </span>
             <Flag code={home?.code ?? '?'} flagUrl={home?.flagUrl} size={26} />
           </div>
 
@@ -151,7 +154,10 @@ function MatchRow({ match }: { match: Match }) {
 
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <Flag code={away?.code ?? '?'} flagUrl={away?.flagUrl} size={26} />
-            <span className="truncate font-medium">{away?.name}</span>
+            <span className="truncate font-medium">
+              <span className="sm:hidden">{away?.code ?? away?.name}</span>
+              <span className="hidden sm:inline">{away?.name}</span>
+            </span>
           </div>
         </>
       )}

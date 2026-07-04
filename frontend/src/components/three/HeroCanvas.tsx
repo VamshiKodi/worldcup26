@@ -12,11 +12,20 @@ import { CAMERA } from './hero/constants';
  * small/touch devices to hold 60 FPS. The canvas captures pointer events for drag-to-rotate.
  */
 export default function HeroCanvas() {
-  // Decide quality once at mount — coarse pointer or narrow viewport ⇒ low-power path.
+  // Decide quality once at mount. Any touch-capable device takes the low-power path:
+  // it disables MSAA + N8AO (which flicker/"blink" on mobile GPUs) and drops the
+  // drag-to-orbit controls so a finger swipe scrolls the page instead of rotating the
+  // trophy. `pointer: coarse` alone misses some tablets/large phones and in-app
+  // browsers, so we also check the touch-event APIs and viewport width.
   const lowPower = useMemo(() => {
     if (typeof window === 'undefined') return false;
     const coarse = window.matchMedia('(pointer: coarse)').matches;
-    return coarse || window.innerWidth < 768;
+    const touch =
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      // @ts-expect-error legacy IE/Edge pointer count
+      navigator.msMaxTouchPoints > 0;
+    return coarse || touch || window.innerWidth < 768;
   }, []);
 
   return (
@@ -24,8 +33,12 @@ export default function HeroCanvas() {
       flat
       shadows
       dpr={lowPower ? [1, 1.5] : [1, 2]}
-      gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
+      // No MSAA on touch/low-power: a multisampled default framebuffer fights the
+      // EffectComposer's render targets on many mobile GPUs and makes the frame
+      // flicker ("blinking"). The composer handles AA on desktop (multisampling).
+      gl={{ alpha: true, antialias: !lowPower, powerPreference: 'high-performance' }}
       camera={{ position: CAMERA.position, fov: CAMERA.fov, near: 0.1, far: 100 }}
+      // pan-y lets a vertical swipe scroll the page instead of being captured here.
       style={{ touchAction: 'pan-y' }}
     >
       <Scene lowPower={lowPower} />

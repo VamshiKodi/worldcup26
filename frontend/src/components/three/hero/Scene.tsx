@@ -60,19 +60,25 @@ export function Scene({ lowPower = false }: SceneProps) {
         />
       </Float>
 
-      <OrbitControls
-        makeDefault
-        target={CAMERA.target}
-        enableZoom={false}
-        enablePan={false}
-        enableDamping
-        dampingFactor={0.08}
-        rotateSpeed={0.6}
-        minPolarAngle={Math.PI / 2 - 0.32}
-        maxPolarAngle={Math.PI / 2 + 0.18}
-        onStart={auto.onDragStart}
-        onEnd={auto.onDragEnd}
-      />
+      {/* Drag-to-inspect is desktop-only. On touch devices OrbitControls would
+          capture one-finger vertical swipes to orbit the camera, so the page
+          couldn't scroll over the trophy — we drop it there and let the trophy
+          simply auto-rotate. */}
+      {!lowPower && (
+        <OrbitControls
+          makeDefault
+          target={CAMERA.target}
+          enableZoom={false}
+          enablePan={false}
+          enableDamping
+          dampingFactor={0.08}
+          rotateSpeed={0.6}
+          minPolarAngle={Math.PI / 2 - 0.32}
+          maxPolarAngle={Math.PI / 2 + 0.18}
+          onStart={auto.onDragStart}
+          onEnd={auto.onDragEnd}
+        />
+      )}
 
       <Effects lowPower={lowPower} />
     </>

@@ -1,0 +1,13 @@
+{
+  "name": "worldcup26-reels",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Automated Instagram-reel screen recorder for the WorldCup26 site (Playwright).",
+  "scripts": {
+    "record": "node record-reel.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0"
+  }
+}

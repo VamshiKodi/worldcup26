@@ -18,7 +18,7 @@ const ROUNDS: Array<{ stage: Stage; label: string; slots: number }> = [
 
 export default function Bracket() {
   // Pull every fixture once; knockout ties are filtered per column.
-  const { body, loading, error, refetch } = useApi<ListResponse<Match>>('/matches', { limit: 100 });
+  const { body, loading, error, refetch } = useApi<ListResponse<Match>>('/matches', { limit: 120 });
   const matches = body?.data ?? [];
   const knockout = matches.filter((m) => m.stage !== 'group');
 

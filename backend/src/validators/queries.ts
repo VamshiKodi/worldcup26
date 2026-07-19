@@ -24,7 +24,8 @@ export const playerQuery = z.object({
 
 export const matchQuery = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  // 2026 has 104 fixtures; cap must allow fetching the full schedule in one page.
+  limit: z.coerce.number().int().min(1).max(150).default(20),
   stage: z.enum(['group', 'r32', 'r16', 'qf', 'sf', 'third', 'final']).optional(),
   group: objectId.optional(),
   status: z.enum(['scheduled', 'live', 'finished']).optional(),

@@ -16,7 +16,7 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { StatePanel } from '../components/ui/StatePanel';
 
 export default function AiLab() {
-  const { body: matchBody, refetch: refetchMatches } = useApi<ListResponse<Match>>('/matches', { limit: 100 });
+  const { body: matchBody, refetch: refetchMatches } = useApi<ListResponse<Match>>('/matches', { limit: 120 });
   const matches = useMemo(
     () => (matchBody?.data ?? []).filter((match) => match.homeTeamId && match.awayTeamId),
     [matchBody],

@@ -15,7 +15,7 @@ const STAGES: Stage[] = ['group', 'r32', 'r16', 'qf', 'sf', 'third', 'final'];
 const STATUSES: MatchStatus[] = ['scheduled', 'live', 'finished'];
 
 export function AdminMatches() {
-  const { body, loading, error, refetch } = useApi<ListResponse<Match>>('/matches', { limit: 100 });
+  const { body, loading, error, refetch } = useApi<ListResponse<Match>>('/matches', { limit: 120 });
   const { body: teamsBody } = useApi<ListResponse<Team>>('/teams', { limit: 100 });
   const { body: groupsBody } = useApi<{ data: Group[] }>('/groups');
   const matches = body?.data ?? [];

@@ -68,13 +68,47 @@ export async function predictMatch(matchId: string) {
   };
 }
 
+interface FixtureLite {
+  stage: string;
+  status: string;
+  homeTeamId?: unknown;
+  awayTeamId?: unknown;
+  winner?: string | null;
+}
+
 /**
- * Championship probabilities for the whole field via a softmax over team ratings.
- * A temperature spreads the distribution so it isn't dominated by the single top side.
+ * Ids of teams that can still lift the trophy: sides with an unfinished match on the title
+ * path (the third-place playoff doesn't count), or only the champion once the final is done.
+ * Null when fixtures can't tell us (nothing seeded yet) — callers fall back to the full field.
+ */
+function titleContenders(fixtures: FixtureLite[]): Set<string> | null {
+  const final = fixtures.find((m) => m.stage === 'final');
+  if (final?.status === 'finished' && final.winner && final.winner !== 'DRAW') {
+    const champion = final.winner === 'HOME_TEAM' ? final.homeTeamId : final.awayTeamId;
+    return champion ? new Set([String(champion)]) : null;
+  }
+  const alive = new Set<string>();
+  for (const m of fixtures) {
+    if (m.stage === 'third' || m.status === 'finished') continue;
+    if (m.homeTeamId) alive.add(String(m.homeTeamId));
+    if (m.awayTeamId) alive.add(String(m.awayTeamId));
+  }
+  return alive.size ? alive : null;
+}
+
+/**
+ * Championship probabilities via a softmax over team ratings, restricted to teams still in
+ * title contention. A temperature spreads the distribution so it isn't dominated by the top side.
  */
 export async function championshipOdds(limit = 16) {
-  const teams = await TeamModel.find().select(TEAM_FIELDS).lean();
-  const rated = teams.map((t) => ({ team: t as unknown as PopulatedTeam, rating: ratingOf(t) }));
+  const [teams, fixtures] = await Promise.all([
+    TeamModel.find().select(TEAM_FIELDS).lean(),
+    MatchModel.find().select('stage status homeTeamId awayTeamId winner').lean(),
+  ]);
+
+  const contenders = titleContenders(fixtures as FixtureLite[]);
+  const pool = contenders ? teams.filter((t) => contenders.has(String(t._id))) : teams;
+  const rated = pool.map((t) => ({ team: t as unknown as PopulatedTeam, rating: ratingOf(t) }));
 
   const TEMPERATURE = 110;
   const max = Math.max(...rated.map((r) => r.rating));

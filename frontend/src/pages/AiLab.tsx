@@ -17,10 +17,16 @@ import { StatePanel } from '../components/ui/StatePanel';
 
 export default function AiLab() {
   const { body: matchBody, refetch: refetchMatches } = useApi<ListResponse<Match>>('/matches', { limit: 120 });
-  const matches = useMemo(
-    () => (matchBody?.data ?? []).filter((match) => match.homeTeamId && match.awayTeamId),
-    [matchBody],
-  );
+  // Upcoming fixtures first (soonest on top) so the list leads with what's next — deep in the
+  // knockouts that's the final itself; played matches follow, most recent first.
+  const matches = useMemo(() => {
+    const resolved = (matchBody?.data ?? []).filter((match) => match.homeTeamId && match.awayTeamId);
+    const kickoff = (m: Match) => new Date(m.kickoff).getTime();
+    return [
+      ...resolved.filter((m) => m.status !== 'finished').sort((a, b) => kickoff(a) - kickoff(b)),
+      ...resolved.filter((m) => m.status === 'finished').sort((a, b) => kickoff(b) - kickoff(a)),
+    ];
+  }, [matchBody]);
   const [matchId, setMatchId] = useState<string>('');
 
   // Keep an open lab tab current as knockout pairings are resolved by the live fixture sync.

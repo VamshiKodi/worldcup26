@@ -4,6 +4,7 @@ import {
   ratingOf,
   matchProbabilities,
   expectedGoals,
+  likelyScoreline,
   HOST_ADVANTAGE,
   type TeamLike,
 } from './strength.js';
@@ -62,7 +63,7 @@ export async function predictMatch(matchId: string) {
     home: teamCard(home, rHome),
     away: teamCard(away, rAway),
     probabilities: { home: pct(probs.home), draw: pct(probs.draw), away: pct(probs.away) },
-    likelyScore: { home: Math.round(xg.home), away: Math.round(xg.away) },
+    likelyScore: likelyScoreline(xg.home, xg.away, match.stage === 'group'),
     expectedGoals: { home: Math.round(xg.home * 10) / 10, away: Math.round(xg.away * 10) / 10 },
   };
 }

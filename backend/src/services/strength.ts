@@ -129,6 +129,32 @@ export function expectedGoals(
   return { home, away };
 }
 
+/**
+ * Most probable scoreline from the two Poisson goal distributions.
+ * With `allowDraw` off (knockouts), level scorelines are skipped so the favourite is shown winning.
+ */
+export function likelyScoreline(
+  xgHome: number,
+  xgAway: number,
+  allowDraw = true,
+): { home: number; away: number } {
+  const homeGoals = poissonDistribution(xgHome);
+  const awayGoals = poissonDistribution(xgAway);
+  let best = { home: 0, away: allowDraw ? 0 : 1 };
+  let bestProbability = -1;
+  for (let h = 0; h < homeGoals.length; h += 1) {
+    for (let a = 0; a < awayGoals.length; a += 1) {
+      if (!allowDraw && h === a) continue;
+      const probability = homeGoals[h] * awayGoals[a];
+      if (probability > bestProbability) {
+        bestProbability = probability;
+        best = { home: h, away: a };
+      }
+    }
+  }
+  return best;
+}
+
 function poissonDistribution(lambda: number, maxGoals = 10): number[] {
   const probabilities = [Math.exp(-lambda)];
   for (let goals = 1; goals <= maxGoals; goals += 1) {
